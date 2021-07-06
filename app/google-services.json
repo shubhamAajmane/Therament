@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "284176040575",
+    "project_id": "therament",
+    "storage_bucket": "therament.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:284176040575:android:64e45c8fae8d544061354a",
+        "android_client_info": {
+          "package_name": "com.opd.therament"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "284176040575-5abadjuhtl891tu6gcnu5f1p4cm5rdfc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.opd.therament",
+            "certificate_hash": "1ffbfd8e53c9f4a47f0857aea66c37b2bda7ccb6"
+          }
+        },
+        {
+          "client_id": "284176040575-dnal2esblijlbg4n2ucbdgl4sn0pmr66.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBc_hasWX6I2aycdF1TXLE08gl3umFSoRw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "284176040575-dnal2esblijlbg4n2ucbdgl4sn0pmr66.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

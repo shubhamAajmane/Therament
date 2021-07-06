@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Therament</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_appointments">My Appointments</string>
+    <string name="title_profile">My Profile</string>
+    <string name="collection_users">users</string>
+</resources>
