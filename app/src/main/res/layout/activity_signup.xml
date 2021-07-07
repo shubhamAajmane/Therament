@@ -6,14 +6,17 @@
     android:layout_height="match_parent"
     tools:context=".activities.SignupActivity">
 
-    <ImageView
+    <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/imageView"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_width="0dp"
+        android:layout_height="300dp"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_launcher_icon" />
+        app:lottie_rawRes="@raw/signup_animation"
+        app:layout_constraintBottom_toTopOf="@id/et_name"/>
 
     <EditText
         android:id="@+id/et_name"
@@ -42,41 +45,15 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/et_name" />
 
-    <EditText
-        android:id="@+id/et_pass"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:layout_marginHorizontal="10dp"
-        android:layout_marginTop="20dp"
-        android:hint="Password"
-        android:fontFamily="@font/regular"
-        android:inputType="textPassword"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/et_phone" />
-
-    <EditText
-        android:id="@+id/et_confirm_pass"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:layout_marginHorizontal="10dp"
-        android:layout_marginTop="20dp"
-        android:fontFamily="@font/regular"
-        android:hint="Confirm Password"
-        android:inputType="textPassword"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/et_pass" />
-
     <Button
         android:id="@+id/btn_signup"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="56dp"
         android:text="Signup"
-        android:layout_marginTop="20dp"
         android:fontFamily="@font/regular"
-        app:layout_constraintEnd_toEndOf="@+id/et_confirm_pass"
-        app:layout_constraintStart_toStartOf="@+id/et_confirm_pass"
-        app:layout_constraintTop_toBottomOf="@+id/et_confirm_pass" />
+        android:layout_margin="10dp"
+        app:layout_constraintTop_toBottomOf="@id/et_phone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -8,6 +8,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,11 +25,15 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.PhoneAuthCredential;
+import com.google.firebase.auth.PhoneAuthOptions;
+import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -37,16 +42,20 @@ import com.opd.therament.R;
 import com.opd.therament.datamodels.UserDataModel;
 import com.opd.therament.utilities.ConnectivityManager;
 
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
-    TextView tvForgot, tvSignup;
+    TextView tvSignup;
     Button btnLogin;
     SignInButton googleSignInButton;
     GoogleSignInClient googleSignInClient;
     private static final int SIGN_IN = 100;
     FirebaseAuth mAuth;
     FirebaseFirestore firestore;
-    UserDataModel userDataModel = new UserDataModel();
+    EditText etPhone;
+    PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +64,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         init();
 
         mAuth = FirebaseAuth.getInstance();
+        firestore = FirebaseFirestore.getInstance();
 
         TextView googleButtonLabel = (TextView) googleSignInButton.getChildAt(0);
         googleButtonLabel.setText("Continue with Google");
@@ -67,19 +77,39 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         googleSignInClient = GoogleSignIn.getClient(LoginActivity.this, gso);
 
-        firestore = FirebaseFirestore.getInstance();
+        mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+            @Override
+            public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
+
+            }
+
+            @Override
+            public void onVerificationFailed(@NonNull FirebaseException e) {
+                Toast.makeText(LoginActivity.this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onCodeSent(@NonNull String s, @NonNull PhoneAuthProvider.ForceResendingToken forceResendingToken) {
+                super.onCodeSent(s, forceResendingToken);
+                Intent login = new Intent(LoginActivity.this, VerificationActivity.class);
+                login.putExtra("auth", s);
+                login.putExtra("isLogin", true);
+                startActivity(login);
+            }
+        };
+
     }
 
     void init() {
-        tvForgot = findViewById(R.id.tv_forgot);
         tvSignup = findViewById(R.id.tv_signup);
         btnLogin = findViewById(R.id.btn_login);
         googleSignInButton = findViewById(R.id.btn_google);
+        etPhone = findViewById(R.id.et_phone);
 
-        tvForgot.setOnClickListener(this);
         tvSignup.setOnClickListener(this);
         btnLogin.setOnClickListener(this);
         googleSignInButton.setOnClickListener(this);
+        etPhone.setOnClickListener(this);
     }
 
     @Override
@@ -92,7 +122,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void updateUI(FirebaseUser currentUser) {
 
         if (currentUser != null) {
-
+            addToDataBase(currentUser);
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
             finish();
         }
@@ -105,26 +135,30 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         userCollection.get().addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
+                boolean isRegistered = false;
+                String userId = currentUser.getUid();
 
                 for (QueryDocumentSnapshot document : task.getResult()) {
 
                     UserDataModel oldUser = document.toObject(UserDataModel.class);
 
-                    if (!oldUser.getUserId().equals(currentUser.getUid())) {
-
-                        DocumentReference userDoc = userCollection.document(currentUser.getUid());
-
-                        UserDataModel newUser = new UserDataModel();
-                        newUser.setName(currentUser.getDisplayName());
-                        newUser.setPhone(currentUser.getPhoneNumber());
-                        newUser.setEmail(currentUser.getEmail());
-                        newUser.setUserId(currentUser.getUid());
-                        userDoc.set(newUser);
-                        Toast.makeText(LoginActivity.this, "Welcome " + newUser.getName(), Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(this, MainActivity.class));
-                        finish();
+                    if (oldUser.getUserId().equals(userId)) {
+                        isRegistered = true;
                     }
+
                 }
+
+                if (!isRegistered) {
+                    DocumentReference userDoc = userCollection.document(userId);
+
+                    UserDataModel newUser = new UserDataModel();
+                    newUser.setName(currentUser.getDisplayName());
+                    newUser.setPhone(currentUser.getPhoneNumber());
+                    newUser.setEmail(currentUser.getEmail());
+                    newUser.setUserId(userId);
+                    userDoc.set(newUser);
+                }
+
             } else {
                 Log.d("FIRESTORE", task.getException().toString());
             }
@@ -136,13 +170,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         switch (view.getId()) {
 
-            case R.id.tv_forgot: {
-                startActivity(new Intent(LoginActivity.this, ForgotPassword.class));
-            }
-            break;
-
             case R.id.btn_login: {
-
+                if (etPhone.getText().toString().isEmpty() || etPhone.getText().toString().length() != 10) {
+                    etPhone.setError("Invalid phone no");
+                } else {
+                    checkPhoneNo(etPhone.getText().toString());
+                }
             }
             break;
 
@@ -171,6 +204,40 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
             }
         }
+    }
+
+    private void checkPhoneNo(String phone) {
+        CollectionReference userCollection = firestore.collection(getString(R.string.collection_users));
+
+        userCollection.get().addOnCompleteListener(task -> {
+
+            if (task.isSuccessful()) {
+
+                boolean isRegistered = false;
+
+                for (QueryDocumentSnapshot documentSnapshot : Objects.requireNonNull(task.getResult())) {
+
+                    UserDataModel userDataModel = documentSnapshot.toObject(UserDataModel.class);
+
+                    if (userDataModel.getPhone() != null) {
+                        if (userDataModel.getPhone().equals(phone)) {
+                            isRegistered = true;
+                        }
+                    }
+                }
+
+                if (!isRegistered) {
+                    Toast.makeText(LoginActivity.this, "Phone no not registered", Toast.LENGTH_SHORT).show();
+                } else {
+                    PhoneAuthOptions options = PhoneAuthOptions.newBuilder()
+                            .setPhoneNumber("+91" + phone).setTimeout(60L, TimeUnit.SECONDS)
+                            .setCallbacks(mCallbacks)
+                            .setActivity(LoginActivity.this)
+                            .build();
+                    PhoneAuthProvider.verifyPhoneNumber(options);
+                }
+            }
+        });
     }
 
     public void signIn() {
@@ -202,6 +269,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     FirebaseUser user = mAuth.getCurrentUser();
+
+                    Toast.makeText(LoginActivity.this, "Welcome " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
                     updateUI(user);
                 } else {
                     updateUI(null);

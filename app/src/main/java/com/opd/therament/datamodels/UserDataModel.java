@@ -2,7 +2,7 @@ package com.opd.therament.datamodels;
 
 public class UserDataModel {
 
-    private String userId, name, email, phone, password;
+    private String userId, name, email, phone;
 
     public String getUserId() {
         return userId;
@@ -26,14 +26,6 @@ public class UserDataModel {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getPhone() {

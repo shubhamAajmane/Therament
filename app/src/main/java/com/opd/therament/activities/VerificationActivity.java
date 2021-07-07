@@ -2,14 +2,18 @@ package com.opd.therament.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
@@ -29,10 +33,10 @@ public class VerificationActivity extends AppCompatActivity {
     FirebaseAuth mAuth;
     FirebaseFirestore firestore;
     String verificationId, name, phone, password;
-    boolean fromSignup = false;
-    final String VERIFICATION_PROCESS = "PROCESS_VERIFICATION";
+    boolean isLogin;
     Button btnVerify;
-    String code;
+    TextView tvResendCode;
+    boolean isLogged = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,17 +52,37 @@ public class VerificationActivity extends AppCompatActivity {
         otp5.addTextChangedListener(new OtpWatcher(otp5, otpText));
         otp6.addTextChangedListener(new OtpWatcher(otp6, otpText));
 
+        FirebaseApp.initializeApp(this);
         firestore = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
 
         Intent intent = getIntent();
 
         if (intent != null) {
+
+            isLogin = intent.getBooleanExtra("isLogin", false);
+
             verificationId = intent.getStringExtra("auth");
-            name = intent.getStringExtra("name");
-            phone = intent.getStringExtra("phone");
-            password = intent.getStringExtra("password");
         }
+
+        mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+            @Override
+            public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
+                signInWithPhone(phoneAuthCredential);
+            }
+
+            @Override
+            public void onVerificationFailed(@NonNull FirebaseException e) {
+                Toast.makeText(VerificationActivity.this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onCodeSent(@NonNull String s, @NonNull PhoneAuthProvider.ForceResendingToken forceResendingToken) {
+                super.onCodeSent(s, forceResendingToken);
+                verificationId = s;
+                resendingToken = forceResendingToken;
+            }
+        };
 
         btnVerify.setOnClickListener(view -> {
             String verificationCode = otp1.getText().toString() + otp2.getText().toString() + otp3.getText().toString() + otp4.getText().toString() + otp5.getText().toString() + otp6.getText().toString();
@@ -68,6 +92,10 @@ public class VerificationActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(VerificationActivity.this, "Please enter OTP", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        tvResendCode.setOnClickListener(view -> {
+            resendVerification(phone, resendingToken);
         });
     }
 
@@ -79,15 +107,11 @@ public class VerificationActivity extends AppCompatActivity {
         otp5 = findViewById(R.id.otp_edit_box5);
         otp6 = findViewById(R.id.otp_edit_box6);
         btnVerify = findViewById(R.id.btn_verify);
-    }
-
-    public void setPhoneNoVerification(String phone) {
-        PhoneAuthOptions options = PhoneAuthOptions.newBuilder().setPhoneNumber(phone).setTimeout(60L, TimeUnit.SECONDS).setActivity(this).setCallbacks(mCallbacks).build();
-        PhoneAuthProvider.verifyPhoneNumber(options);
+        tvResendCode = findViewById(R.id.tv_resend);
     }
 
     public void resendVerification(String phone, PhoneAuthProvider.ForceResendingToken token) {
-        PhoneAuthOptions options = PhoneAuthOptions.newBuilder().setPhoneNumber(phone).setTimeout(60L, TimeUnit.SECONDS).setActivity(this).setCallbacks(mCallbacks).setForceResendingToken(resendingToken).build();
+        PhoneAuthOptions options = PhoneAuthOptions.newBuilder().setPhoneNumber(phone).setTimeout(60L, TimeUnit.SECONDS).setActivity(this).setCallbacks(mCallbacks).setForceResendingToken(token).build();
         PhoneAuthProvider.verifyPhoneNumber(options);
     }
 
@@ -101,28 +125,49 @@ public class VerificationActivity extends AppCompatActivity {
         mAuth.signInWithCredential(phoneAuthCredential).addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
-
-                addToDatabase(name, phone, password);
+                isLogged = true;
+                if (!isLogin) {
+                    addToDatabase(name, phone);
+                } else {
+                    Intent newPassword = new Intent(VerificationActivity.this, MainActivity.class);
+                    startActivity(newPassword);
+                }
 
             } else {
                 Toast.makeText(VerificationActivity.this, "Incorrect OTP", Toast.LENGTH_SHORT).show();
-                Log.d("FIREBASE", String.valueOf(task.getException()));
             }
         });
     }
 
-    private void addToDatabase(String name, String phone, String password) {
-        DocumentReference userDoc = firestore.collection(getString(R.string.collection_users)).document();
+    private void addToDatabase(String name, String phone) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        String userId = user.getUid();
+
+        DocumentReference userDoc = firestore.collection(getString(R.string.collection_users)).document(userId);
 
         UserDataModel newUser = new UserDataModel();
         newUser.setName(name);
         newUser.setPhone(phone);
-        newUser.setPassword(password);
-        newUser.setUserId(userDoc.getId());
+        newUser.setUserId(userId);
         userDoc.set(newUser);
 
         startActivity(new Intent(VerificationActivity.this, MainActivity.class));
         Toast.makeText(VerificationActivity.this, "Welcome " + newUser.getName(), Toast.LENGTH_SHORT).show();
         finish();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if(!isLogged) {
+            mAuth.signOut();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mAuth.signOut();
     }
 }

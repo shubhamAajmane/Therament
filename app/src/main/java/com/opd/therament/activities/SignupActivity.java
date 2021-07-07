@@ -3,7 +3,6 @@ package com.opd.therament.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,12 +10,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseException;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
@@ -32,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 public class SignupActivity extends AppCompatActivity implements View.OnClickListener {
 
-    EditText etName, etPhone, etPass, etConfirmPass;
+    EditText etName, etPhone;
     Button btnSignup;
     FirebaseAuth mAuth;
     PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
@@ -51,13 +46,12 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
         mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
             public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
-                signInWithPhone(phoneAuthCredential);
+
             }
 
             @Override
             public void onVerificationFailed(@NonNull FirebaseException e) {
-                Log.d("FIREBASE",e.getLocalizedMessage());
-                Toast.makeText(SignupActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                Toast.makeText(SignupActivity.this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -72,7 +66,6 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
                         otpIntent.putExtra("auth", s);
                         otpIntent.putExtra("name", etName.getText().toString());
                         otpIntent.putExtra("phone", etPhone.getText().toString());
-                        otpIntent.putExtra("password", etPass.getText().toString());
                         startActivity(otpIntent);
                     }
                 }, 2000);
@@ -80,28 +73,9 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
         };
     }
 
-    private void signInWithPhone(PhoneAuthCredential phoneAuthCredential) {
-        mAuth.signInWithCredential(phoneAuthCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    sendToDashboard();
-                }
-            }
-        });
-    }
-
-    private void sendToDashboard() {
-        Intent dashIntent = new Intent(SignupActivity.this, MainActivity.class);
-        startActivity(dashIntent);
-        finish();
-    }
-
     public void init() {
         etName = findViewById(R.id.et_name);
         etPhone = findViewById(R.id.et_phone);
-        etPass = findViewById(R.id.et_pass);
-        etConfirmPass = findViewById(R.id.et_confirm_pass);
         btnSignup = findViewById(R.id.btn_signup);
         btnSignup.setOnClickListener(this);
     }
@@ -116,14 +90,8 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
                     etName.setError("Enter name");
                 } else if (etPhone.getText().toString().isEmpty()) {
                     etPhone.setError("Enter phone no");
-                } else if (etPass.getText().toString().isEmpty()) {
-                    etPass.setError("Enter password");
-                } else if (etConfirmPass.getText().toString().isEmpty()) {
-                    etConfirmPass.setError("Enter confirm password");
                 } else if (etPhone.getText().length() != 10) {
                     etPhone.setError("Enter valid phone no");
-                } else if (!etPass.getText().toString().equals(etConfirmPass.getText().toString())) {
-                    Toast.makeText(SignupActivity.this, "Password and Confirm Password must be same", Toast.LENGTH_SHORT).show();
                 } else {
                     checkPhoneNo(etPhone.getText().toString());
                 }
@@ -139,20 +107,23 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
 
             if (task.isSuccessful()) {
 
+                boolean isRegistered = false;
+
                 for (QueryDocumentSnapshot documentSnapshot : Objects.requireNonNull(task.getResult())) {
 
                     UserDataModel userDataModel = documentSnapshot.toObject(UserDataModel.class);
 
                     if (userDataModel.getPhone() != null) {
-                        if (!userDataModel.getPhone().equals(phone)) {
-                            sendVerificationCode(phone);
-
-                        } else {
-                            Toast.makeText(SignupActivity.this, "Phone no already registered", Toast.LENGTH_SHORT).show();
+                        if (userDataModel.getPhone().equals(phone)) {
+                            isRegistered = true;
                         }
-                    } else {
-                        sendVerificationCode(phone);
                     }
+                }
+
+                if (isRegistered) {
+                    Toast.makeText(SignupActivity.this, "Phone no already registered", Toast.LENGTH_SHORT).show();
+                } else {
+                    sendVerificationCode(phone);
                 }
             }
         });
