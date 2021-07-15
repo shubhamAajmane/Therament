@@ -1,9 +1,14 @@
 package com.opd.therament.activities;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +26,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.opd.therament.R;
 import com.opd.therament.datamodels.UserDataModel;
+import com.opd.therament.utilities.ConnectivityManager;
 import com.opd.therament.utilities.OtpWatcher;
 
 import java.util.concurrent.TimeUnit;
@@ -32,11 +38,13 @@ public class VerificationActivity extends AppCompatActivity {
     PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
     FirebaseAuth mAuth;
     FirebaseFirestore firestore;
-    String verificationId, name, phone, password;
+    String verificationId, name, phone;
     boolean isLogin;
     Button btnVerify;
     TextView tvResendCode;
     boolean isLogged = false;
+    ImageView ivBack;
+    SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +63,7 @@ public class VerificationActivity extends AppCompatActivity {
         FirebaseApp.initializeApp(this);
         firestore = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
+        sharedPreferences = getSharedPreferences(getString(R.string.preferences), MODE_PRIVATE);
 
         Intent intent = getIntent();
 
@@ -63,12 +72,16 @@ public class VerificationActivity extends AppCompatActivity {
             isLogin = intent.getBooleanExtra("isLogin", false);
 
             verificationId = intent.getStringExtra("auth");
+
+            name = intent.getStringExtra("name");
+
+            phone = intent.getStringExtra("phone");
         }
 
         mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
             public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
-                signInWithPhone(phoneAuthCredential);
+
             }
 
             @Override
@@ -95,7 +108,27 @@ public class VerificationActivity extends AppCompatActivity {
         });
 
         tvResendCode.setOnClickListener(view -> {
-            resendVerification(phone, resendingToken);
+
+            if (new ConnectivityManager().checkConnectivity(VerificationActivity.this)) {
+                resendVerification(phone, resendingToken);
+            } else {
+                new AlertDialog.Builder(VerificationActivity.this).setTitle("No Internet").setMessage("Please check your internet connection").setPositiveButton("Open Settings", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+                        startActivity(intent);
+                    }
+                }).setNegativeButton("Close", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                    }
+                }).create().show();
+            }
+        });
+
+        ivBack.setOnClickListener(view -> {
+            onBackPressed();
+            mAuth.signOut();
         });
     }
 
@@ -108,6 +141,7 @@ public class VerificationActivity extends AppCompatActivity {
         otp6 = findViewById(R.id.otp_edit_box6);
         btnVerify = findViewById(R.id.btn_verify);
         tvResendCode = findViewById(R.id.tv_resend);
+        ivBack = findViewById(R.id.iv_back);
     }
 
     public void resendVerification(String phone, PhoneAuthProvider.ForceResendingToken token) {
@@ -126,13 +160,16 @@ public class VerificationActivity extends AppCompatActivity {
 
             if (task.isSuccessful()) {
                 isLogged = true;
-                if (!isLogin) {
-                    addToDatabase(name, phone);
+                if (isLogin) {
+                    String cityName = sharedPreferences.getString("city", "");
+                    if (cityName.isEmpty()) {
+                        startActivity(new Intent(VerificationActivity.this, CityActivity.class));
+                    } else {
+                        startActivity(new Intent(VerificationActivity.this, MainActivity.class));
+                    }
                 } else {
-                    Intent newPassword = new Intent(VerificationActivity.this, MainActivity.class);
-                    startActivity(newPassword);
+                    addToDatabase(name, phone);
                 }
-
             } else {
                 Toast.makeText(VerificationActivity.this, "Incorrect OTP", Toast.LENGTH_SHORT).show();
             }
@@ -141,6 +178,7 @@ public class VerificationActivity extends AppCompatActivity {
 
     private void addToDatabase(String name, String phone) {
         FirebaseUser user = mAuth.getCurrentUser();
+        assert user != null;
         String userId = user.getUid();
 
         DocumentReference userDoc = firestore.collection(getString(R.string.collection_users)).document(userId);
@@ -151,8 +189,8 @@ public class VerificationActivity extends AppCompatActivity {
         newUser.setUserId(userId);
         userDoc.set(newUser);
 
-        startActivity(new Intent(VerificationActivity.this, MainActivity.class));
-        Toast.makeText(VerificationActivity.this, "Welcome " + newUser.getName(), Toast.LENGTH_SHORT).show();
+        startActivity(new Intent(VerificationActivity.this, CityActivity.class));
+        Toast.makeText(VerificationActivity.this, "Welcome " + name, Toast.LENGTH_SHORT).show();
         finish();
     }
 
@@ -160,7 +198,7 @@ public class VerificationActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
-        if(!isLogged) {
+        if (!isLogged) {
             mAuth.signOut();
         }
     }
@@ -168,6 +206,9 @@ public class VerificationActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mAuth.signOut();
+
+        if (!isLogged) {
+            mAuth.signOut();
+        }
     }
 }

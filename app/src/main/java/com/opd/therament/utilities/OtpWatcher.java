@@ -53,6 +53,9 @@ public class OtpWatcher implements TextWatcher {
                     editText[3].requestFocus();
                 break;
             case R.id.otp_edit_box6:
+                if (text.length() == 0) {
+                    editText[4].requestFocus();
+                }
                 break;
         }
     }

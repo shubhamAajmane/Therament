@@ -3,6 +3,7 @@ package com.opd.therament.activities;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -15,7 +16,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -56,6 +56,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     FirebaseFirestore firestore;
     EditText etPhone;
     PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
+    boolean isRegistered = false;
+    SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +79,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         googleSignInClient = GoogleSignIn.getClient(LoginActivity.this, gso);
 
+        sharedPreferences = getSharedPreferences(getString(R.string.preferences), MODE_PRIVATE);
+
         mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
             public void onVerificationCompleted(@NonNull PhoneAuthCredential phoneAuthCredential) {
@@ -91,13 +95,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             @Override
             public void onCodeSent(@NonNull String s, @NonNull PhoneAuthProvider.ForceResendingToken forceResendingToken) {
                 super.onCodeSent(s, forceResendingToken);
+                Toast.makeText(LoginActivity.this, "OTP has been sent to your phone no", Toast.LENGTH_SHORT).show();
+
                 Intent login = new Intent(LoginActivity.this, VerificationActivity.class);
                 login.putExtra("auth", s);
                 login.putExtra("isLogin", true);
                 startActivity(login);
             }
         };
-
     }
 
     void init() {
@@ -109,7 +114,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         tvSignup.setOnClickListener(this);
         btnLogin.setOnClickListener(this);
         googleSignInButton.setOnClickListener(this);
-        etPhone.setOnClickListener(this);
     }
 
     @Override
@@ -123,8 +127,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         if (currentUser != null) {
             addToDataBase(currentUser);
-            startActivity(new Intent(LoginActivity.this, MainActivity.class));
-            finish();
         }
     }
 
@@ -135,7 +137,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         userCollection.get().addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
-                boolean isRegistered = false;
+
                 String userId = currentUser.getUid();
 
                 for (QueryDocumentSnapshot document : task.getResult()) {
@@ -145,7 +147,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     if (oldUser.getUserId().equals(userId)) {
                         isRegistered = true;
                     }
-
                 }
 
                 if (!isRegistered) {
@@ -157,7 +158,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     newUser.setEmail(currentUser.getEmail());
                     newUser.setUserId(userId);
                     userDoc.set(newUser);
+                    startActivity(new Intent(LoginActivity.this, CityActivity.class));
+                } else {
+                    String city = sharedPreferences.getString("city", "");
+
+                    if (city.isEmpty()) {
+                        startActivity(new Intent(LoginActivity.this, CityActivity.class));
+                    } else {
+                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    }
                 }
+                finish();
 
             } else {
                 Log.d("FIRESTORE", task.getException().toString());
@@ -174,7 +185,21 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 if (etPhone.getText().toString().isEmpty() || etPhone.getText().toString().length() != 10) {
                     etPhone.setError("Invalid phone no");
                 } else {
-                    checkPhoneNo(etPhone.getText().toString());
+                    if (new ConnectivityManager().checkConnectivity(LoginActivity.this)) {
+                        checkPhoneNo(etPhone.getText().toString());
+                    } else {
+                        new AlertDialog.Builder(LoginActivity.this).setTitle("No Internet").setMessage("Please check your internet connection").setPositiveButton("Open Settings", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+                                startActivity(intent);
+                            }
+                        }).setNegativeButton("Close", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                            }
+                        }).create().show();
+                    }
                 }
             }
             break;
@@ -195,10 +220,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
                             startActivity(intent);
                         }
-                    }).setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+                    }).setNegativeButton("Close", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            ActivityCompat.finishAffinity(LoginActivity.this);
                         }
                     }).create().show();
                 }
@@ -270,6 +294,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 if (task.isSuccessful()) {
                     FirebaseUser user = mAuth.getCurrentUser();
 
+                    assert user != null;
                     Toast.makeText(LoginActivity.this, "Welcome " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
                     updateUI(user);
                 } else {

@@ -6,6 +6,15 @@
     android:layout_height="match_parent"
     tools:context=".activities.SignupActivity">
 
+    <ImageView
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:id="@+id/iv_back"
+        android:src="@drawable/ic_back"
+        android:layout_margin="10dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/imageView"
         android:layout_width="0dp"

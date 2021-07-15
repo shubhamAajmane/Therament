@@ -1,15 +1,20 @@
 package com.opd.therament.activities;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.FirebaseAuth;
@@ -21,6 +26,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.opd.therament.R;
 import com.opd.therament.datamodels.UserDataModel;
+import com.opd.therament.utilities.ConnectivityManager;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +38,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
     FirebaseAuth mAuth;
     PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
     FirebaseFirestore firestore;
+    ImageView ivBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,9 +73,10 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
                         otpIntent.putExtra("auth", s);
                         otpIntent.putExtra("name", etName.getText().toString());
                         otpIntent.putExtra("phone", etPhone.getText().toString());
+                        otpIntent.putExtra("isLogin", false);
                         startActivity(otpIntent);
                     }
-                }, 2000);
+                }, 1000);
             }
         };
     }
@@ -78,6 +86,8 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
         etPhone = findViewById(R.id.et_phone);
         btnSignup = findViewById(R.id.btn_signup);
         btnSignup.setOnClickListener(this);
+        ivBack = findViewById(R.id.iv_back);
+        ivBack.setOnClickListener(this);
     }
 
     @Override
@@ -93,8 +103,27 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
                 } else if (etPhone.getText().length() != 10) {
                     etPhone.setError("Enter valid phone no");
                 } else {
-                    checkPhoneNo(etPhone.getText().toString());
+                    if (new ConnectivityManager().checkConnectivity(SignupActivity.this)) {
+                        checkPhoneNo(etPhone.getText().toString());
+                    } else {
+                        new AlertDialog.Builder(SignupActivity.this).setTitle("No Internet").setMessage("Please check your internet connection").setPositiveButton("Open Settings", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+                                startActivity(intent);
+                            }
+                        }).setNegativeButton("Close", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                            }
+                        }).create().show();
+                    }
                 }
+            }
+            break;
+
+            case R.id.iv_back: {
+                onBackPressed();
             }
             break;
         }

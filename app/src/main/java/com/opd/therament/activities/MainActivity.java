@@ -5,16 +5,11 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.opd.therament.R;
 
 public class MainActivity extends AppCompatActivity {
-
-    MaterialToolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,15 +18,20 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView navView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
-        toolbar = findViewById(R.id.app_bar);
+       /*toolbar = findViewById(R.id.app_bar);
         setSupportActionBar(toolbar);
 
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_dashboard, R.id.navigation_appointments, R.id.navigation_profile)
-                .build();
+                .build();*/
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+        // NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finishAffinity();
+    }
 }

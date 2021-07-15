@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context=".utilities.CategoryDialog">
+
+    <LinearLayout
+        android:id="@+id/category_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <RadioButton
+                android:id="@+id/category_children"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/regular"
+                android:text="Children's Hospitals"
+                android:textSize="18sp" />
+
+            <RadioButton
+                android:id="@+id/category_bones"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/regular"
+                android:text="Bone Hospitals"
+                android:textSize="18sp" />
+
+            <RadioButton
+                android:id="@+id/category_dental"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/regular"
+                android:text="Dental Hospitals"
+                android:textSize="18sp" />
+
+            <RadioButton
+                android:id="@+id/category_surgery"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/regular"
+                android:text="Surgery Hospitals"
+                android:textSize="18sp" />
+
+            <RadioButton
+                android:id="@+id/category_cancer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/regular"
+                android:text="Cancer Hospitals"
+                android:textSize="18sp" />
+
+            <RadioButton
+                android:id="@+id/category_covid19"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/regular"
+                android:text="Covid-19 Hospitals"
+                android:textSize="18sp" />
+
+        </RadioGroup>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/category_layout">
+
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/regular"
+            android:text="Cancel" />
+
+        <Button
+            android:id="@+id/btn_done"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/regular"
+            android:text="Done" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

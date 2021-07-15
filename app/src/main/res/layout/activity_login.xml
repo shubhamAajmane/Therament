@@ -24,6 +24,7 @@
         android:drawablePadding="5dp"
         android:hint="Phone number"
         android:inputType="phone"
+        android:maxLength="10"
         app:layout_constraintTop_toBottomOf="@id/iv_logo" />
 
     <Button
@@ -76,13 +77,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
+        app:layout_constraintBottom_toTopOf="@id/animation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_or" />
 
     <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/animation"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="0dp"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -6,17 +6,27 @@
     android:layout_height="match_parent"
     tools:context=".activities.VerificationActivity">
 
+    <ImageView
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:src="@drawable/ic_back"
+        android:id="@+id/iv_back"
+        android:layout_margin="10dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/animation"
         android:layout_width="0dp"
         android:layout_height="300dp"
+        app:layout_constraintBottom_toTopOf="@id/tv_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:lottie_autoPlay="true"
         app:lottie_loop="true"
-        app:layout_constraintBottom_toTopOf="@id/tv_title"
-        app:lottie_rawRes="@raw/otp_animation"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:lottie_rawRes="@raw/otp_animation" />
 
     <TextView
         android:id="@+id/tv_title"
