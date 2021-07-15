@@ -40,7 +40,7 @@ public class CategoryDialog extends Dialog implements View.OnClickListener {
         c1.setOnClickListener(this);
         c2 = findViewById(R.id.category_bones);
         c2.setOnClickListener(this);
-        c3 = findViewById(R.id.category_women);
+        c3 = findViewById(R.id.category_surgery);
         c3.setOnClickListener(this);
         c4 = findViewById(R.id.category_dental);
         c4.setOnClickListener(this);
@@ -79,8 +79,8 @@ public class CategoryDialog extends Dialog implements View.OnClickListener {
             }
             break;
 
-            case R.id.category_women: {
-                category = "Gynecology";
+            case R.id.category_surgery: {
+                category = "Surgery";
             }
             break;
 
