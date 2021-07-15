@@ -1,0 +1,3 @@
+# Therament
+An Android Application to schedule OPD appointment and view hospital information. 
+We’re working on an Android app that allows users to look up hospital information in a certain city and schedule appointments. A user must login to his verified account in order to arrange an appointment; otherwise, he can only access hospital information. Each hospital will have time slots available for users to schedule appointments. The user is prompted to reserve another time slot if a time slot is full. When a user selects a time slot and submits his information, the information is emailed to the hospital’s email address. 
