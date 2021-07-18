@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.opd.therament.R;
 import com.opd.therament.datamodels.HospitalDatamodel;
 
@@ -21,7 +22,7 @@ public class HospitalAdapter extends RecyclerView.Adapter<HospitalAdapter.Hospit
     ArrayList<HospitalDatamodel> hospitalsList;
     onHospitalClickListener onHospitalClickListener;
 
-    public HospitalAdapter(Context context, ArrayList<HospitalDatamodel> hospitalsList,onHospitalClickListener onHospitalClickListener) {
+    public HospitalAdapter(Context context, ArrayList<HospitalDatamodel> hospitalsList, onHospitalClickListener onHospitalClickListener) {
         this.context = context;
         this.hospitalsList = hospitalsList;
         this.onHospitalClickListener = onHospitalClickListener;
@@ -41,9 +42,10 @@ public class HospitalAdapter extends RecyclerView.Adapter<HospitalAdapter.Hospit
         holder.tvTitle.setText(hospitalModel.getName());
         holder.tvSubtitle.setText(hospitalModel.getAddress());
         holder.tvRatings.setText(hospitalModel.getRating());
+        Glide.with(context).load(hospitalModel.getImageUrl()).into(holder.ivLogo);
 
         holder.itemView.setOnClickListener(view -> {
-            onHospitalClickListener.onHospitalClick(view,position);
+            onHospitalClickListener.onHospitalClick(view, position, hospitalModel, holder.ivLogo);
         });
     }
 
@@ -55,7 +57,7 @@ public class HospitalAdapter extends RecyclerView.Adapter<HospitalAdapter.Hospit
     static class HospitalViewHolder extends RecyclerView.ViewHolder {
 
         ImageView ivLogo;
-        TextView tvTitle, tvSubtitle,tvRatings;
+        TextView tvTitle, tvSubtitle, tvRatings;
 
         public HospitalViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -69,7 +71,7 @@ public class HospitalAdapter extends RecyclerView.Adapter<HospitalAdapter.Hospit
 
     public interface onHospitalClickListener {
 
-         void onHospitalClick(View view,int position);
+        void onHospitalClick(View view, int position, HospitalDatamodel hospitalModel, ImageView ivLogo);
     }
 
     public void updateList(ArrayList<HospitalDatamodel> hospitalsList) {

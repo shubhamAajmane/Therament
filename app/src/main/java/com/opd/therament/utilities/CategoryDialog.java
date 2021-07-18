@@ -3,11 +3,14 @@ package com.opd.therament.utilities;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import androidx.annotation.NonNull;
 
@@ -19,7 +22,9 @@ public class CategoryDialog extends Dialog implements View.OnClickListener {
     getCategories getCategories;
     String category;
     Activity activity;
-    RadioButton c1, c2, c3, c4, c5, c6;
+    RadioButton c1, c2, c3, c4, c5, c6, cAll;
+    RadioGroup radioGroup;
+    SharedPreferences sharedPreferences;
 
     public CategoryDialog(@NonNull Activity activity, getCategories getCategories) {
         super(activity);
@@ -38,7 +43,7 @@ public class CategoryDialog extends Dialog implements View.OnClickListener {
         btnDone = findViewById(R.id.btn_done);
         c1 = findViewById(R.id.category_children);
         c1.setOnClickListener(this);
-        c2 = findViewById(R.id.category_bones);
+        c2 = findViewById(R.id.category_orthopedic);
         c2.setOnClickListener(this);
         c3 = findViewById(R.id.category_surgery);
         c3.setOnClickListener(this);
@@ -48,6 +53,9 @@ public class CategoryDialog extends Dialog implements View.OnClickListener {
         c5.setOnClickListener(this);
         c6 = findViewById(R.id.category_covid19);
         c6.setOnClickListener(this);
+        cAll = findViewById(R.id.category_all);
+        cAll.setOnClickListener(this);
+        radioGroup = findViewById(R.id.radio_group);
 
         btnCancel.setOnClickListener(view -> {
             dismiss();
@@ -57,10 +65,16 @@ public class CategoryDialog extends Dialog implements View.OnClickListener {
             getCategories.getCategoryList(category);
             dismiss();
         });
+
+        sharedPreferences = activity.getSharedPreferences(activity.getString(R.string.preferences), Context.MODE_PRIVATE);
+        radioGroup.check(sharedPreferences.getInt("clickId", 0));
     }
 
     @Override
     public void onClick(View view) {
+
+        int clickedId = view.getId();
+        sharedPreferences.edit().putInt("clickId", clickedId).apply();
 
         switch (view.getId()) {
 
@@ -69,8 +83,8 @@ public class CategoryDialog extends Dialog implements View.OnClickListener {
             }
             break;
 
-            case R.id.category_bones: {
-                category = "Orthopedics";
+            case R.id.category_orthopedic: {
+                category = "Orthopedic";
             }
             break;
 
@@ -93,6 +107,10 @@ public class CategoryDialog extends Dialog implements View.OnClickListener {
                 category = "Covid-19";
             }
             break;
+
+            case R.id.category_all: {
+                category = "All";
+            }
         }
     }
 

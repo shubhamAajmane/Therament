@@ -1,12 +1,18 @@
 package com.opd.therament.fragments;
 
+import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,8 +25,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.gson.Gson;
 import com.opd.therament.R;
 import com.opd.therament.activities.CityActivity;
+import com.opd.therament.activities.HospitalActivity;
 import com.opd.therament.adapters.HospitalAdapter;
 import com.opd.therament.datamodels.HospitalDatamodel;
 import com.opd.therament.utilities.CategoryDialog;
@@ -38,6 +46,7 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
     ArrayList<HospitalDatamodel> hospitalsList = new ArrayList<>();
     ImageView ivCategory;
     HospitalAdapter hospitalAdapter;
+    EditText etSearch;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -66,7 +75,6 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
         hospitalsColl.whereEqualTo("city", cityName).get().addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
-
                 for (DocumentSnapshot doc : Objects.requireNonNull(task.getResult())) {
                     HospitalDatamodel datamodel = doc.toObject(HospitalDatamodel.class);
                     hospitalsList.add(datamodel);
@@ -86,26 +94,41 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
         rvHospitals = root.findViewById(R.id.rv_hospitals);
         rvHospitals.setLayoutManager(new LinearLayoutManager(getContext()));
         ivCategory = root.findViewById(R.id.iv_category);
+        etSearch = root.findViewById(R.id.et_search);
+
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (charSequence != null) {
+                    searchHospitals(etSearch.getText().toString());
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+            }
+        });
     }
 
-    @Override
-    public void onHospitalClick(View view, int position) {
-
-    }
-
-    @Override
-    public void getCategoryList(String category) {
+    private void searchHospitals(String search) {
         ArrayList<HospitalDatamodel> sortedList = new ArrayList<>();
 
         CollectionReference hospitalsColl = firestore.collection(getString(R.string.collection_hospitals));
 
-        hospitalsColl.whereEqualTo("category", category).whereEqualTo("city", cityName).get().addOnCompleteListener(task -> {
+        hospitalsColl.whereEqualTo("city", cityName).get().addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
 
                 for (DocumentSnapshot doc : Objects.requireNonNull(task.getResult())) {
                     HospitalDatamodel datamodel = doc.toObject(HospitalDatamodel.class);
-                    sortedList.add(datamodel);
+
+                    if (datamodel.getName().contains(search)) {
+                        sortedList.add(datamodel);
+                    }
                 }
                 hospitalAdapter.updateList(sortedList);
 
@@ -113,5 +136,50 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
                 Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    public void onHospitalClick(View view, int position, HospitalDatamodel hospitalModel, ImageView ivLogo) {
+        ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(getActivity(), ivLogo, "animation");
+
+        String hospitalDetails = new Gson().toJson(hospitalModel);
+        Log.d("DETAILS", hospitalDetails);
+        Intent intent = new Intent(getActivity(), HospitalActivity.class);
+        intent.putExtra("hospitalDetails", hospitalDetails);
+        startActivity(intent, options.toBundle());
+    }
+
+    @Override
+    public void getCategoryList(String category) {
+
+        if (category.equals("All")) {
+            getHospitals();
+        } else {
+            ArrayList<HospitalDatamodel> sortedList = new ArrayList<>();
+
+            CollectionReference hospitalsColl = firestore.collection(getString(R.string.collection_hospitals));
+
+            hospitalsColl.whereEqualTo("category", category).whereEqualTo("city", cityName).get().addOnCompleteListener(task -> {
+
+                if (task.isSuccessful()) {
+
+                    for (DocumentSnapshot doc : Objects.requireNonNull(task.getResult())) {
+                        HospitalDatamodel datamodel = doc.toObject(HospitalDatamodel.class);
+                        sortedList.add(datamodel);
+                    }
+                    hospitalAdapter.updateList(sortedList);
+
+                } else {
+                    Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+
+        sharedPreferences.edit().putInt("clickId", R.id.category_all).apply();
     }
 }

@@ -8,4 +8,6 @@
     <string name="collection_cities">cities</string>
     <string name="preferences">THERAMENT_PREFERENCES</string>
     <string name="collection_hospitals">hospitals</string>
+    <string name="collection_doctors">doctors</string>
+    <string name="collection_reviews">reviews</string>
 </resources>

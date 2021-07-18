@@ -6,13 +6,197 @@
     android:layout_height="match_parent"
     tools:context=".activities.HospitalActivity">
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        app:layout_constraintEnd_toStartOf="parent"
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:nestedScrollingEnabled="false"
+        app:layout_constraintBottom_toTopOf="@id/btn_appointment"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:src="@drawable/hospital_image"
-        android:scaleType="centerCrop"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/iv_logo"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/hospital_image"
+                android:transitionName="animation"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/content_view"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:translationY="-5dp"
+                app:cardCornerRadius="10dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/iv_logo">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/tv_hospital_name"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="10dp"
+                        android:fontFamily="@font/bold"
+                        android:text="Hospital Name"
+                        android:textColor="@android:color/black"
+                        android:textSize="20sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <androidx.appcompat.widget.AppCompatRatingBar
+                        android:id="@+id/rating_bar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="50dp"
+                        android:progressTint="@color/golden"
+                        android:scaleX=".45"
+                        android:scaleY=".45"
+                        android:translationX="30dp"
+                        app:layout_constraintBottom_toBottomOf="@id/tv_address"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/tv_address" />
+
+                    <TextView
+                        android:id="@+id/tv_ratings"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="5dp"
+                        android:fontFamily="@font/regular"
+                        android:text="4.2"
+                        android:textColor="@color/light_green"
+                        android:textSize="16sp"
+                        android:translationX="-10dp"
+                        app:layout_constraintBottom_toBottomOf="@id/rating_bar"
+                        app:layout_constraintEnd_toEndOf="@id/rating_bar"
+                        app:layout_constraintTop_toTopOf="@id/rating_bar" />
+
+                    <TextView
+                        android:id="@+id/tv_address"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:fontFamily="@font/regular"
+                        android:text="Sangli-Miraj Road"
+                        android:textSize="16sp"
+                        app:drawableStartCompat="@drawable/ic_location"
+                        app:layout_constraintEnd_toStartOf="@id/rating_bar"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tv_hospital_name" />
+
+                    <TextView
+                        android:id="@+id/tv_time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:drawablePadding="2dp"
+                        android:fontFamily="@font/regular"
+                        android:text="Opens: 9:00am - 6:00pm"
+                        app:drawableStartCompat="@drawable/ic_time"
+                        app:layout_constraintStart_toStartOf="@id/tv_address"
+                        app:layout_constraintTop_toBottomOf="@id/tv_address" />
+
+                    <TextView
+                        android:id="@+id/tv_description"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="10dp"
+                        android:fontFamily="@font/regular"
+                        android:lineSpacingExtra="5dp"
+                        android:text="Details of the hospital appears here"
+                        android:textSize="16sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/tv_time" />
+
+                    <TextView
+                        android:id="@+id/tv_staff_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:fontFamily="@font/bold"
+                        android:text="Our Staffs"
+                        android:textColor="@android:color/black"
+                        android:textSize="20sp"
+                        app:layout_constraintStart_toStartOf="@id/tv_description"
+                        app:layout_constraintTop_toBottomOf="@id/tv_description" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_doctors"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintStart_toStartOf="@id/tv_staff_label"
+                        app:layout_constraintTop_toBottomOf="@id/tv_staff_label" />
+
+                    <TextView
+                        android:id="@+id/tv_reviews_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:fontFamily="@font/bold"
+                        android:text="Reviews"
+                        android:textColor="@android:color/black"
+                        android:textSize="20sp"
+                        app:layout_constraintStart_toStartOf="@id/rv_doctors"
+                        app:layout_constraintTop_toBottomOf="@id/rv_doctors" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_reviews"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintStart_toStartOf="@id/tv_reviews_label"
+                        app:layout_constraintTop_toBottomOf="@id/tv_reviews_label" />
+
+                    <TextView
+                        android:id="@+id/tv_view_all"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/bold"
+                        android:padding="5dp"
+                        android:text="View all"
+                        android:textColor="@color/light_green"
+                        android:textSize="16sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/rv_reviews" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.cardview.widget.CardView>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+    <ImageView
+        android:id="@+id/iv_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/ic_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btn_appointment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/light_green"
+        android:fontFamily="@font/bold"
+        android:text="Schedule Appointment"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -18,7 +18,16 @@
 
         <RadioGroup
             android:layout_width="match_parent"
+            android:id="@+id/radio_group"
             android:layout_height="wrap_content">
+
+            <RadioButton
+                android:id="@+id/category_all"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/regular"
+                android:text="All Hospitals"
+                android:textSize="18sp" />
 
             <RadioButton
                 android:id="@+id/category_children"
@@ -29,11 +38,11 @@
                 android:textSize="18sp" />
 
             <RadioButton
-                android:id="@+id/category_bones"
+                android:id="@+id/category_orthopedic"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/regular"
-                android:text="Bone Hospitals"
+                android:text="Orthopedic Hospitals"
                 android:textSize="18sp" />
 
             <RadioButton

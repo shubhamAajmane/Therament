@@ -7,8 +7,8 @@
     tools:context=".activities.SignupActivity">
 
     <ImageView
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:id="@+id/iv_back"
         android:src="@drawable/ic_back"
         android:layout_margin="10dp"
