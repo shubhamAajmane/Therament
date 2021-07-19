@@ -1,6 +1,6 @@
 package com.opd.therament.datamodels;
 
-public class DoctorDatamodel {
+public class DoctorDataModel {
     public String getId() {
         return id;
     }

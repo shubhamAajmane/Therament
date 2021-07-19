@@ -12,7 +12,6 @@ public class ReviewDataModel {
         this.image = image;
     }
 
-
     public String getId() {
         return id;
     }

@@ -2,6 +2,7 @@ package com.opd.therament.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -21,22 +22,22 @@ import com.google.gson.Gson;
 import com.opd.therament.R;
 import com.opd.therament.adapters.DoctorAdapter;
 import com.opd.therament.adapters.ReviewAdapter;
-import com.opd.therament.datamodels.DoctorDatamodel;
-import com.opd.therament.datamodels.HospitalDatamodel;
+import com.opd.therament.datamodels.DoctorDataModel;
+import com.opd.therament.datamodels.HospitalDataModel;
 import com.opd.therament.datamodels.ReviewDataModel;
 
 import java.util.ArrayList;
 
 public class HospitalActivity extends AppCompatActivity implements View.OnClickListener {
 
-    HospitalDatamodel hospitalDatamodel;
-    TextView tvName, tvAddress, tvDescription, tvRatings, tvViewall;
+    HospitalDataModel hospitalDatamodel;
+    TextView tvName, tvAddress, tvDescription, tvRatings, tvViewall, tvTime;
     ImageView ivLogo, ivBack;
     RatingBar ratingBar;
     RecyclerView rvDoctors, rvReviews;
     FirebaseFirestore firestore;
     Button btnSchedule;
-    ArrayList<DoctorDatamodel> doctorsList = new ArrayList<>();
+    ArrayList<DoctorDataModel> doctorsList = new ArrayList<>();
     ArrayList<ReviewDataModel> reviewsList = new ArrayList<>();
 
     @Override
@@ -46,8 +47,12 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
         init();
         firestore = FirebaseFirestore.getInstance();
 
-        String hospitalDetails = getIntent().getStringExtra("hospitalDetails");
-        hospitalDatamodel = new Gson().fromJson(hospitalDetails, HospitalDatamodel.class);
+        Intent intent = getIntent();
+
+        if (intent != null) {
+            String hospitalDetails = getIntent().getStringExtra("hospitalDetails");
+            hospitalDatamodel = new Gson().fromJson(hospitalDetails, HospitalDataModel.class);
+        }
         setData();
     }
 
@@ -61,6 +66,7 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
         rvDoctors = findViewById(R.id.rv_doctors);
         rvReviews = findViewById(R.id.rv_reviews);
         tvRatings = findViewById(R.id.tv_ratings);
+        tvTime = findViewById(R.id.tv_time);
         tvViewall = findViewById(R.id.tv_view_all);
         tvViewall.setOnClickListener(this);
         btnSchedule = findViewById(R.id.btn_appointment);
@@ -75,17 +81,19 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
         tvAddress.setText(hospitalDatamodel.getAddress());
         tvDescription.setText(hospitalDatamodel.getDescription());
         tvRatings.setText(hospitalDatamodel.getRating());
+        tvTime.setText(String.format("%s %s", getString(R.string.time_label), hospitalDatamodel.getTime()));
         Glide.with(this).load(hospitalDatamodel.getImageUrl()).into(ivLogo);
         ratingBar.setRating(Float.parseFloat(hospitalDatamodel.getRating()));
-        DoctorDatamodel d1 = new DoctorDatamodel();
+
+       /* DoctorDataModel d1 = new DoctorDataModel();
         d1.setName("Dr. J M Johnson");
         d1.setDegree("M.B.B.S");
 
-        DoctorDatamodel d2 = new DoctorDatamodel();
+        DoctorDataModel d2 = new DoctorDataModel();
         d2.setName("Dr. K D Thomson");
         d2.setDegree("B.A.M.S");
 
-        DoctorDatamodel d3 = new DoctorDatamodel();
+        DoctorDataModel d3 = new DoctorDataModel();
         d3.setName("Dr. R D Potter");
         d3.setDegree("B.D.S");
 
@@ -118,10 +126,10 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
         reviewsList.add(r2);
         reviewsList.add(r3);
         reviewsList.add(r4);
-        rvReviews.setAdapter(new ReviewAdapter(this, reviewsList, false));
+        rvReviews.setAdapter(new ReviewAdapter(this, reviewsList, false));*/
 
-        //getDoctors();
-        //getReviews();
+        getDoctors();
+        getReviews();
     }
 
     private void getDoctors() {
@@ -131,14 +139,13 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
         doctorsColl.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 for (DocumentSnapshot snapshot : task.getResult()) {
-                    DoctorDatamodel doctorDatamodel = snapshot.toObject(DoctorDatamodel.class);
+                    DoctorDataModel doctorDatamodel = snapshot.toObject(DoctorDataModel.class);
                     doctorsList.add(doctorDatamodel);
                 }
                 rvDoctors.setAdapter(new DoctorAdapter(HospitalActivity.this, doctorsList));
             } else {
                 Toast.makeText(HospitalActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
-
         });
     }
 
@@ -150,9 +157,10 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
             if (task.isSuccessful()) {
                 for (DocumentSnapshot doc : task.getResult()) {
                     ReviewDataModel reviewDataModel = doc.toObject(ReviewDataModel.class);
+                    Log.d("Review",new Gson().toJson(reviewDataModel));
                     reviewsList.add(reviewDataModel);
                 }
-                rvDoctors.setAdapter(new DoctorAdapter(HospitalActivity.this, doctorsList));
+                rvReviews.setAdapter(new ReviewAdapter(this,reviewsList,false));
             } else {
                 Toast.makeText(HospitalActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
@@ -170,12 +178,15 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
             break;
 
             case R.id.btn_appointment: {
-                startActivity(new Intent(this,AppointmentActivity.class));
+                Intent intent = new Intent(this, AppointmentActivity.class);
+                intent.putExtra("hospitalId", hospitalDatamodel.getId());
+                intent.putExtra("totalCount",hospitalDatamodel.getTotal());
+                startActivity(intent);
             }
             break;
 
             case R.id.tv_view_all: {
-                startActivity(new Intent(this,ReviewsActivity.class));
+                startActivity(new Intent(this, ReviewsActivity.class));
             }
             break;
         }

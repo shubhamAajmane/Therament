@@ -12,16 +12,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.opd.therament.R;
-import com.opd.therament.datamodels.DoctorDatamodel;
+import com.opd.therament.datamodels.DoctorDataModel;
 
 import java.util.ArrayList;
 
 public class DoctorAdapter extends RecyclerView.Adapter<DoctorAdapter.DoctorsViewHolder> {
 
     Context context;
-    ArrayList<DoctorDatamodel> doctorsList;
+    ArrayList<DoctorDataModel> doctorsList;
 
-    public DoctorAdapter(Context context, ArrayList<DoctorDatamodel> doctorsList) {
+    public DoctorAdapter(Context context, ArrayList<DoctorDataModel> doctorsList) {
         this.context = context;
         this.doctorsList = doctorsList;
     }
@@ -36,7 +36,7 @@ public class DoctorAdapter extends RecyclerView.Adapter<DoctorAdapter.DoctorsVie
 
     @Override
     public void onBindViewHolder(@NonNull DoctorsViewHolder holder, int position) {
-        DoctorDatamodel datamodel = doctorsList.get(position);
+        DoctorDataModel datamodel = doctorsList.get(position);
 
         Glide.with(context).load(datamodel.getImage()).placeholder(R.drawable.ic_profile).into(holder.ivProfile);
         holder.tvName.setText(datamodel.getName());

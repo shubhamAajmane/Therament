@@ -10,17 +10,17 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.opd.therament.R;
-import com.opd.therament.datamodels.CityDatamodel;
+import com.opd.therament.datamodels.CityDataModel;
 
 import java.util.ArrayList;
 
 public class CityAdapter extends RecyclerView.Adapter<CityAdapter.CityViewHolder> {
 
     Context context;
-    ArrayList<CityDatamodel> cities;
+    ArrayList<CityDataModel> cities;
     onCityClickListener onCityClick;
 
-    public CityAdapter(Context context, ArrayList<CityDatamodel> cities, onCityClickListener onCityClick) {
+    public CityAdapter(Context context, ArrayList<CityDataModel> cities, onCityClickListener onCityClick) {
         this.context = context;
         this.cities = cities;
         this.onCityClick = onCityClick;

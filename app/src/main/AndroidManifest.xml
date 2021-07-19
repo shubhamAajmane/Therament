@@ -17,11 +17,9 @@
         <activity android:name=".activities.AppointmentActivity" />
         <activity android:name=".activities.HospitalActivity" />
         <activity android:name=".activities.CityActivity" />
-        <activity android:name=".activities.NewPasswordActivity" />
         <activity
             android:name=".activities.MainActivity"
             android:label="@string/title_activity_main" />
-        <activity android:name=".activities.ForgotPassword" />
         <activity android:name=".activities.VerificationActivity" />
         <activity android:name=".activities.SignupActivity" />
         <activity android:name=".activities.LoginActivity" />

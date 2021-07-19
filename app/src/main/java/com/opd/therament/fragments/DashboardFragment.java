@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +29,7 @@ import com.opd.therament.R;
 import com.opd.therament.activities.CityActivity;
 import com.opd.therament.activities.HospitalActivity;
 import com.opd.therament.adapters.HospitalAdapter;
-import com.opd.therament.datamodels.HospitalDatamodel;
+import com.opd.therament.datamodels.HospitalDataModel;
 import com.opd.therament.utilities.CategoryDialog;
 
 import java.util.ArrayList;
@@ -43,7 +42,7 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
     FirebaseFirestore firestore;
     RecyclerView rvHospitals;
     String cityName;
-    ArrayList<HospitalDatamodel> hospitalsList = new ArrayList<>();
+    ArrayList<HospitalDataModel> hospitalsList = new ArrayList<>();
     ImageView ivCategory;
     HospitalAdapter hospitalAdapter;
     EditText etSearch;
@@ -76,7 +75,7 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
 
             if (task.isSuccessful()) {
                 for (DocumentSnapshot doc : Objects.requireNonNull(task.getResult())) {
-                    HospitalDatamodel datamodel = doc.toObject(HospitalDatamodel.class);
+                    HospitalDataModel datamodel = doc.toObject(HospitalDataModel.class);
                     hospitalsList.add(datamodel);
                 }
                 hospitalAdapter = new HospitalAdapter(getContext(), hospitalsList, this);
@@ -115,7 +114,7 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
     }
 
     private void searchHospitals(String search) {
-        ArrayList<HospitalDatamodel> sortedList = new ArrayList<>();
+        ArrayList<HospitalDataModel> sortedList = new ArrayList<>();
 
         CollectionReference hospitalsColl = firestore.collection(getString(R.string.collection_hospitals));
 
@@ -124,7 +123,7 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
             if (task.isSuccessful()) {
 
                 for (DocumentSnapshot doc : Objects.requireNonNull(task.getResult())) {
-                    HospitalDatamodel datamodel = doc.toObject(HospitalDatamodel.class);
+                    HospitalDataModel datamodel = doc.toObject(HospitalDataModel.class);
 
                     if (datamodel.getName().contains(search)) {
                         sortedList.add(datamodel);
@@ -139,7 +138,7 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
     }
 
     @Override
-    public void onHospitalClick(View view, int position, HospitalDatamodel hospitalModel, ImageView ivLogo) {
+    public void onHospitalClick(View view, int position, HospitalDataModel hospitalModel, ImageView ivLogo) {
         ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(getActivity(), ivLogo, "animation");
 
         String hospitalDetails = new Gson().toJson(hospitalModel);
@@ -155,7 +154,7 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
         if (category.equals("All")) {
             getHospitals();
         } else {
-            ArrayList<HospitalDatamodel> sortedList = new ArrayList<>();
+            ArrayList<HospitalDataModel> sortedList = new ArrayList<>();
 
             CollectionReference hospitalsColl = firestore.collection(getString(R.string.collection_hospitals));
 
@@ -164,7 +163,7 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
                 if (task.isSuccessful()) {
 
                     for (DocumentSnapshot doc : Objects.requireNonNull(task.getResult())) {
-                        HospitalDatamodel datamodel = doc.toObject(HospitalDatamodel.class);
+                        HospitalDataModel datamodel = doc.toObject(HospitalDataModel.class);
                         sortedList.add(datamodel);
                     }
                     hospitalAdapter.updateList(sortedList);

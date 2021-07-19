@@ -15,7 +15,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.opd.therament.R;
 import com.opd.therament.adapters.CityAdapter;
-import com.opd.therament.datamodels.CityDatamodel;
+import com.opd.therament.datamodels.CityDataModel;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -25,7 +25,7 @@ public class CityActivity extends AppCompatActivity implements CityAdapter.onCit
     RecyclerView rvCities;
     CityAdapter cityAdapter;
     FirebaseFirestore firestore;
-    ArrayList<CityDatamodel> cityList = new ArrayList<>();
+    ArrayList<CityDataModel> cityList = new ArrayList<>();
     SharedPreferences sharedPreferences;
 
     @Override
@@ -51,7 +51,7 @@ public class CityActivity extends AppCompatActivity implements CityAdapter.onCit
             if (task.isSuccessful()) {
                 for (DocumentSnapshot doc : Objects.requireNonNull(task.getResult())) {
 
-                    CityDatamodel cityDatamodel = doc.toObject(CityDatamodel.class);
+                    CityDataModel cityDatamodel = doc.toObject(CityDataModel.class);
 
                     cityList.add(cityDatamodel);
                 }

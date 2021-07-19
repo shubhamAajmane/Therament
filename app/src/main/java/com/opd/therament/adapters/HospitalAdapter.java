@@ -12,17 +12,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.opd.therament.R;
-import com.opd.therament.datamodels.HospitalDatamodel;
+import com.opd.therament.datamodels.HospitalDataModel;
 
 import java.util.ArrayList;
 
 public class HospitalAdapter extends RecyclerView.Adapter<HospitalAdapter.HospitalViewHolder> {
 
     Context context;
-    ArrayList<HospitalDatamodel> hospitalsList;
+    ArrayList<HospitalDataModel> hospitalsList;
     onHospitalClickListener onHospitalClickListener;
 
-    public HospitalAdapter(Context context, ArrayList<HospitalDatamodel> hospitalsList, onHospitalClickListener onHospitalClickListener) {
+    public HospitalAdapter(Context context, ArrayList<HospitalDataModel> hospitalsList, onHospitalClickListener onHospitalClickListener) {
         this.context = context;
         this.hospitalsList = hospitalsList;
         this.onHospitalClickListener = onHospitalClickListener;
@@ -38,7 +38,7 @@ public class HospitalAdapter extends RecyclerView.Adapter<HospitalAdapter.Hospit
 
     @Override
     public void onBindViewHolder(@NonNull HospitalViewHolder holder, int position) {
-        HospitalDatamodel hospitalModel = hospitalsList.get(position);
+        HospitalDataModel hospitalModel = hospitalsList.get(position);
         holder.tvTitle.setText(hospitalModel.getName());
         holder.tvSubtitle.setText(hospitalModel.getAddress());
         holder.tvRatings.setText(hospitalModel.getRating());
@@ -71,10 +71,10 @@ public class HospitalAdapter extends RecyclerView.Adapter<HospitalAdapter.Hospit
 
     public interface onHospitalClickListener {
 
-        void onHospitalClick(View view, int position, HospitalDatamodel hospitalModel, ImageView ivLogo);
+        void onHospitalClick(View view, int position, HospitalDataModel hospitalModel, ImageView ivLogo);
     }
 
-    public void updateList(ArrayList<HospitalDatamodel> hospitalsList) {
+    public void updateList(ArrayList<HospitalDataModel> hospitalsList) {
         this.hospitalsList = hospitalsList;
         notifyDataSetChanged();
     }

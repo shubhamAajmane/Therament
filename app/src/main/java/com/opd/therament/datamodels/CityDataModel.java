@@ -1,6 +1,6 @@
 package com.opd.therament.datamodels;
 
-public class CityDatamodel {
+public class CityDataModel {
 
     String id,name;
 

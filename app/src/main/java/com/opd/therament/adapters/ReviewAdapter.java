@@ -48,9 +48,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewHold
 
         if (viewAll) {
             return reviewList.size();
-        } else {
-            return 3;
-        }
+        } else return Math.min(reviewList.size(), 3);
     }
 
     static class ReviewHolder extends RecyclerView.ViewHolder {

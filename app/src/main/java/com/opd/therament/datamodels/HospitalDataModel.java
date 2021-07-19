@@ -1,8 +1,42 @@
 package com.opd.therament.datamodels;
 
-public class HospitalDatamodel {
+public class HospitalDataModel {
 
-    String id, address, city, description, imageUrl, name,category,rating;
+    String id;
+    String address;
+    String city;
+    String description;
+    String imageUrl;
+    String name;
+    String category;
+    String rating;
+    String time;
+    String total;
+    String email;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getTotal() {
+        return total;
+    }
+
+    public void setTotal(String total) {
+        this.total = total;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
+    }
 
     public String getCategory() {
         return category;

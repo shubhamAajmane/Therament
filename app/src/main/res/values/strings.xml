@@ -10,4 +10,6 @@
     <string name="collection_hospitals">hospitals</string>
     <string name="collection_doctors">doctors</string>
     <string name="collection_reviews">reviews</string>
+    <string name="time_label">Opens:</string>
+    <string name="collection_timeslots">timeslots</string>
 </resources>
