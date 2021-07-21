@@ -28,6 +28,49 @@
         app:layout_constraintTop_toTopOf="@id/iv_back" />
 
     <TextView
+        android:id="@+id/tv_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="20dp"
+        android:fontFamily="@font/bold"
+        android:text="Date"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/iv_back" />
+
+    <LinearLayout
+        android:id="@+id/date_spinner_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@drawable/edit_text_bg"
+        android:orientation="horizontal"
+        android:textSize="14sp"
+        android:weightSum="5"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/tv_date"
+        app:layout_constraintTop_toBottomOf="@id/tv_date">
+
+        <Spinner
+            android:id="@+id/date_spinner"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="4.5"
+            android:background="@android:color/transparent"
+            android:padding="10dp" />
+
+        <ImageView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight=".5"
+            android:src="@drawable/spinner_arrow" />
+
+    </LinearLayout>
+
+    <TextView
         android:id="@+id/tv_time_slot"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -38,7 +81,7 @@
         android:textColor="@android:color/black"
         android:textSize="16sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/iv_back" />
+        app:layout_constraintTop_toBottomOf="@id/date_spinner_layout" />
 
     <LinearLayout
         android:id="@+id/spinner_layout"
@@ -47,6 +90,7 @@
         android:layout_margin="10dp"
         android:background="@drawable/edit_text_bg"
         android:orientation="horizontal"
+        android:textSize="14sp"
         android:weightSum="5"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/tv_time_slot"
@@ -57,8 +101,8 @@
             android:layout_width="0dp"
             android:layout_height="40dp"
             android:layout_weight="4.5"
-            android:padding="10dp"
-            android:background="@android:color/transparent" />
+            android:background="@android:color/transparent"
+            android:padding="10dp" />
 
         <ImageView
             android:layout_width="0dp"
@@ -85,13 +129,15 @@
     <EditText
         android:id="@+id/et_title"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:layout_margin="10dp"
         android:background="@drawable/edit_text_bg"
         android:fontFamily="@font/regular"
         android:imeOptions="actionNext"
         android:inputType="text"
+        android:maxLength="20"
         android:padding="10dp"
+        android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_title" />
@@ -116,8 +162,12 @@
         android:layout_margin="10dp"
         android:background="@drawable/edit_text_bg"
         android:fontFamily="@font/regular"
+        android:gravity="start"
+        android:hint="Enter your symptoms in short, max 300 characters"
         android:inputType="textMultiLine"
+        android:maxLength="300"
         android:padding="10dp"
+        android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_description" />

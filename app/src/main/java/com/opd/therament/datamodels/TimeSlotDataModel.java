@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class TimeSlotDataModel {
 
-    String id,time,status;
+    String id, timeSlot, status;
 
     public String getId() {
         return id;
@@ -14,12 +14,12 @@ public class TimeSlotDataModel {
         this.id = id;
     }
 
-    public String getTime() {
-        return time;
+    public String getTimeSlot() {
+        return timeSlot;
     }
 
-    public void setTime(String time) {
-        this.time = time;
+    public void setTimeSlot(String time) {
+        this.timeSlot = time;
     }
 
     public String getStatus() {
@@ -33,6 +33,6 @@ public class TimeSlotDataModel {
     @NotNull
     @Override
     public String toString() {
-        return time;
+        return timeSlot;
     }
 }

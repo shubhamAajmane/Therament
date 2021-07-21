@@ -12,4 +12,6 @@
     <string name="collection_reviews">reviews</string>
     <string name="time_label">Opens:</string>
     <string name="collection_timeslots">timeslots</string>
+    <string name="collection_appointments">appointments</string>
+    <string name="collection_times">times</string>
 </resources>

@@ -180,7 +180,6 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
             case R.id.btn_appointment: {
                 Intent intent = new Intent(this, AppointmentActivity.class);
                 intent.putExtra("hospitalId", hospitalDatamodel.getId());
-                intent.putExtra("totalCount",hospitalDatamodel.getTotal());
                 startActivity(intent);
             }
             break;
