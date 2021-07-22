@@ -13,14 +13,17 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.gson.Gson;
 import com.opd.therament.R;
 import com.opd.therament.datamodels.AppointmentDataModel;
 import com.opd.therament.datamodels.DateDataModel;
+import com.opd.therament.datamodels.HospitalDataModel;
 import com.opd.therament.datamodels.TimeSlotDataModel;
 
 import java.text.SimpleDateFormat;
@@ -35,7 +38,7 @@ public class AppointmentActivity extends AppCompatActivity {
     ImageView ivBack;
     EditText etTitle, etDescription;
     Button btnSchedule;
-    String hospitalId, selectedTime, selectedDate, time, date;
+    String selectedTime, selectedDate, time, date;
     int totalCount, status;
     ArrayAdapter<TimeSlotDataModel> timeAdapter;
     ArrayAdapter<DateDataModel> dateAdapter;
@@ -46,21 +49,28 @@ public class AppointmentActivity extends AppCompatActivity {
     Calendar myCalendar;
     SimpleDateFormat dateFormat, timeFormat;
     TimeSlotDataModel t = new TimeSlotDataModel();
+    HospitalDataModel hospitalDetails;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_appointment);
+        Intent intent = getIntent();
 
-        ivBack = findViewById(R.id.iv_back);
-        ivBack.setOnClickListener(view -> {
-            onBackPressed();
-        });
+        if (intent != null) {
+            String hos = intent.getStringExtra("hospitalDetails");
+            hospitalDetails = new Gson().fromJson(hos,HospitalDataModel.class);
+        }
 
         spDate = findViewById(R.id.date_spinner);
         spTime = findViewById(R.id.spinner);
         etTitle = findViewById(R.id.et_title);
         etDescription = findViewById(R.id.et_description);
+        ivBack = findViewById(R.id.iv_back);
+        ivBack.setOnClickListener(view -> {
+            onBackPressed();
+        });
+
         btnSchedule = findViewById(R.id.btn_schedule);
         btnSchedule.setOnClickListener(view -> {
             if (spDate.getSelectedItemPosition() == 0) {
@@ -73,12 +83,6 @@ public class AppointmentActivity extends AppCompatActivity {
                 scheduleAppointment();
             }
         });
-
-        Intent intent = getIntent();
-
-        if (intent != null) {
-            hospitalId = intent.getStringExtra("hospitalId");
-        }
 
         mAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
@@ -136,7 +140,7 @@ public class AppointmentActivity extends AppCompatActivity {
         t.setTimeSlot("Select Time Slot");
         timeList.add(t);
 
-        CollectionReference timeColl = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalId).collection(getString(R.string.collection_timeslots)).document(dateDataModel.getId()).collection(getString(R.string.collection_times));
+        CollectionReference timeColl = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalDetails.getId()).collection(getString(R.string.collection_timeslots)).document(dateDataModel.getId()).collection(getString(R.string.collection_times));
         timeColl.get().addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
@@ -173,7 +177,7 @@ public class AppointmentActivity extends AppCompatActivity {
         dateList.add(d);
         d.setId("0");
 
-        CollectionReference collRef = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalId).collection(getString(R.string.collection_timeslots));
+        CollectionReference collRef = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalDetails.getId()).collection(getString(R.string.collection_timeslots));
         collRef.get().addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
@@ -214,7 +218,7 @@ public class AppointmentActivity extends AppCompatActivity {
         if (!updatedDateList.get(1).equals(dateList.get(1).getDate())) {
 
             for (int i = 0; i < dateList.size(); i++) {
-                DocumentReference dateDoc = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalId)
+                DocumentReference dateDoc = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalDetails.getId())
                         .collection(getString(R.string.collection_timeslots)).document(dateList.get(i).getId());
 
                 dateDoc.update("date", updatedDateList.get(i));
@@ -238,7 +242,7 @@ public class AppointmentActivity extends AppCompatActivity {
         CollectionReference appointColl = userDoc.collection(getString(R.string.collection_appointments));
         DocumentReference appointmentDoc = userDoc.collection(getString(R.string.collection_appointments)).document();
 
-        appointColl.whereEqualTo("hospitalId", hospitalId).whereEqualTo("selectedDate", selectedDate).whereEqualTo("selectedTime", selectedTime).get().addOnCompleteListener(task -> {
+        appointColl.whereEqualTo("hospitalId", hospitalDetails.getId()).whereEqualTo("selectedDate", selectedDate).whereEqualTo("selectedTime", selectedTime).get().addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
 
@@ -267,7 +271,10 @@ public class AppointmentActivity extends AppCompatActivity {
 
         AppointmentDataModel appointmentDataModel = new AppointmentDataModel();
         appointmentDataModel.setId(appointmentDoc.getId());
-        appointmentDataModel.setHospitalId(hospitalId);
+        appointmentDataModel.setHospitalId(hospitalDetails.getId());
+        appointmentDataModel.setHospitalImage(hospitalDetails.getImageUrl());
+        appointmentDataModel.setHospitalName(hospitalDetails.getName());
+        appointmentDataModel.setHospitalAddress(hospitalDetails.getAddress());
         appointmentDataModel.setTime(time);
         appointmentDataModel.setDate(date);
         appointmentDataModel.setSelectedTime(selectedTime);
@@ -279,7 +286,7 @@ public class AppointmentActivity extends AppCompatActivity {
 
             if (taskDoc.isSuccessful()) {
                 Toast.makeText(AppointmentActivity.this, "Appointment scheduled successfully", Toast.LENGTH_SHORT).show();
-                DocumentReference timeRef = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalId).collection(getString(R.string.collection_timeslots)).document(selectedDateModel.getId()).collection(getString(R.string.collection_times)).document(selectedTimeModel.getId());
+                DocumentReference timeRef = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalDetails.getId()).collection(getString(R.string.collection_timeslots)).document(selectedDateModel.getId()).collection(getString(R.string.collection_times)).document(selectedTimeModel.getId());
 
                 int increment = ++status;
                 timeRef.update("status", String.valueOf(increment));

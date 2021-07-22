@@ -1,7 +1,31 @@
 package com.opd.therament.datamodels;
 
 public class AppointmentDataModel {
-    String id, selectedDate, selectedTime, title, description, time, date, hospitalId;
+    String id, selectedDate, selectedTime, title, description, time, date, hospitalId, hospitalImage, hospitalName, hospitalAddress;
+
+    public String getHospitalImage() {
+        return hospitalImage;
+    }
+
+    public void setHospitalImage(String hospitalImage) {
+        this.hospitalImage = hospitalImage;
+    }
+
+    public String getHospitalName() {
+        return hospitalName;
+    }
+
+    public void setHospitalName(String hospitalName) {
+        this.hospitalName = hospitalName;
+    }
+
+    public String getHospitalAddress() {
+        return hospitalAddress;
+    }
+
+    public void setHospitalAddress(String hospitalAddress) {
+        this.hospitalAddress = hospitalAddress;
+    }
 
     public String getSelectedDate() {
         return selectedDate;
