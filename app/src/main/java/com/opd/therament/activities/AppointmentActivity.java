@@ -7,6 +7,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -31,11 +32,11 @@ import java.util.Locale;
 public class AppointmentActivity extends AppCompatActivity {
 
     Spinner spTime, spDate;
-    EditText etTitle, etDescription, etDate;
+    ImageView ivBack;
+    EditText etTitle, etDescription;
     Button btnSchedule;
     String hospitalId, selectedTime, selectedDate, time, date;
     int totalCount, status;
-    ArrayList<String> updatedDateList = new ArrayList<>();
     ArrayAdapter<TimeSlotDataModel> timeAdapter;
     ArrayAdapter<DateDataModel> dateAdapter;
     FirebaseFirestore firestore;
@@ -50,6 +51,11 @@ public class AppointmentActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_appointment);
+
+        ivBack = findViewById(R.id.iv_back);
+        ivBack.setOnClickListener(view -> {
+            onBackPressed();
+        });
 
         spDate = findViewById(R.id.date_spinner);
         spTime = findViewById(R.id.spinner);
@@ -165,6 +171,7 @@ public class AppointmentActivity extends AppCompatActivity {
         DateDataModel d = new DateDataModel();
         d.setDate("Select Date");
         dateList.add(d);
+        d.setId("0");
 
         CollectionReference collRef = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalId).collection(getString(R.string.collection_timeslots));
         collRef.get().addOnCompleteListener(task -> {
@@ -187,6 +194,9 @@ public class AppointmentActivity extends AppCompatActivity {
 
     private void updateDates(ArrayList<DateDataModel> dateList) {
 
+        ArrayList<String> updatedDateList = new ArrayList<>();
+        updatedDateList.add("Select Date");
+
         int post = 7;
 
         for (int i = 0; i < post; i++) {
@@ -201,7 +211,8 @@ public class AppointmentActivity extends AppCompatActivity {
             updatedDateList.add(result);
         }
 
-        if (!updatedDateList.get(0).equals(date)) {
+        if (!updatedDateList.get(1).equals(dateList.get(1).getDate())) {
+
             for (int i = 0; i < dateList.size(); i++) {
                 DocumentReference dateDoc = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalId)
                         .collection(getString(R.string.collection_timeslots)).document(dateList.get(i).getId());
