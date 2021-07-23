@@ -2,6 +2,7 @@ package com.opd.therament.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -13,7 +14,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -25,6 +25,8 @@ import com.opd.therament.datamodels.AppointmentDataModel;
 import com.opd.therament.datamodels.DateDataModel;
 import com.opd.therament.datamodels.HospitalDataModel;
 import com.opd.therament.datamodels.TimeSlotDataModel;
+import com.opd.therament.datamodels.UserDataModel;
+import com.opd.therament.utilities.MailSender;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -59,7 +61,7 @@ public class AppointmentActivity extends AppCompatActivity {
 
         if (intent != null) {
             String hos = intent.getStringExtra("hospitalDetails");
-            hospitalDetails = new Gson().fromJson(hos,HospitalDataModel.class);
+            hospitalDetails = new Gson().fromJson(hos, HospitalDataModel.class);
         }
 
         spDate = findViewById(R.id.date_spinner);
@@ -121,7 +123,7 @@ public class AppointmentActivity extends AppCompatActivity {
                     status = Integer.parseInt(selectedTimeModel.getStatus());
 
                     if (status == totalCount) {
-                        Toast.makeText(AppointmentActivity.this, "This slot is full", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AppointmentActivity.this, "This Time Slot is full", Toast.LENGTH_SHORT).show();
                         int pos = timeAdapter.getPosition(t);
                         spTime.setSelection(pos);
                     }
@@ -141,7 +143,7 @@ public class AppointmentActivity extends AppCompatActivity {
         timeList.add(t);
 
         CollectionReference timeColl = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalDetails.getId()).collection(getString(R.string.collection_timeslots)).document(dateDataModel.getId()).collection(getString(R.string.collection_times));
-        timeColl.get().addOnCompleteListener(task -> {
+        timeColl.orderBy("timeSlot").get().addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
 
@@ -258,13 +260,65 @@ public class AppointmentActivity extends AppCompatActivity {
                 if (isScheduled) {
                     Toast.makeText(AppointmentActivity.this, "Appointment already scheduled for this hospital on this date and time", Toast.LENGTH_SHORT).show();
                 } else {
-                    updateDatabase(appointmentDoc);
+                    getUserDetails(appointmentDoc, userDoc);
                 }
 
             } else {
                 Toast.makeText(AppointmentActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void getUserDetails(DocumentReference appointmentDoc, DocumentReference userDoc) {
+
+        userDoc.get().addOnCompleteListener(task -> {
+
+            if (task.isSuccessful()) {
+
+                DocumentSnapshot doc = task.getResult();
+
+                if (doc.exists()) {
+                    UserDataModel userDataModel = doc.toObject(UserDataModel.class);
+                    sendEmail(appointmentDoc, userDataModel);
+                } else {
+                    Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void sendEmail(DocumentReference appDoc, UserDataModel userDataModel) {
+
+        String userName = userDataModel.getName();
+        String contact;
+
+        if (userDataModel.getPhone() != null) {
+            contact = userDataModel.getPhone();
+        } else {
+            contact = userDataModel.getEmail();
+        }
+
+        String msgBody = "Title: " + etTitle.getText().toString() + "\nDescription: " + etDescription.getText().toString() + "\nUser Name: " + userName + "\nContact Details: " + contact + "\nSelected Date: " + selectedDate + "\nTime Slot: " + selectedTime + "\nScheduled On: " + date + " " + time;
+
+        Thread sender = new Thread(() -> {
+            boolean mailSent;
+            try {
+                MailSender sender1 = new MailSender(getString(R.string.app_email), getString(R.string.app_email_pass));
+                sender1.sendMail(msgBody,
+                        getString(R.string.app_email),
+                        "aajmane09@gmail.com");
+                mailSent = true;
+            } catch (Exception e) {
+                mailSent = false;
+                Log.e("mylog", "Error: " + e.getMessage());
+            }
+            if (mailSent) {
+                updateDatabase(appDoc);
+            }
+        });
+        sender.start();
     }
 
     private void updateDatabase(DocumentReference appointmentDoc) {
@@ -281,17 +335,12 @@ public class AppointmentActivity extends AppCompatActivity {
         appointmentDataModel.setSelectedDate(selectedDate);
         appointmentDataModel.setTitle(etTitle.getText().toString());
         appointmentDataModel.setDescription(etDescription.getText().toString());
-
-        appointmentDoc.set(appointmentDataModel).addOnCompleteListener(taskDoc -> {
-
-            if (taskDoc.isSuccessful()) {
-                Toast.makeText(AppointmentActivity.this, "Appointment scheduled successfully", Toast.LENGTH_SHORT).show();
-                DocumentReference timeRef = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalDetails.getId()).collection(getString(R.string.collection_timeslots)).document(selectedDateModel.getId()).collection(getString(R.string.collection_times)).document(selectedTimeModel.getId());
-
-                int increment = ++status;
-                timeRef.update("status", String.valueOf(increment));
-                finish();
-            }
+        appointmentDoc.set(appointmentDataModel).addOnCompleteListener(task -> {
+            DocumentReference timeRef = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalDetails.getId()).collection(getString(R.string.collection_timeslots)).document(selectedDateModel.getId()).collection(getString(R.string.collection_times)).document(selectedTimeModel.getId());
+            int increment = ++status;
+            timeRef.update("status", String.valueOf(increment));
+            Toast.makeText(AppointmentActivity.this, "Appointment scheduled successfully", Toast.LENGTH_SHORT).show();
+            finish();
         });
     }
 }

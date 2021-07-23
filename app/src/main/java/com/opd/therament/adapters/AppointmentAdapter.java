@@ -4,11 +4,11 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -21,10 +21,12 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
 
     Context context;
     ArrayList<AppointmentDataModel> dataModels;
+    onCancelListener onCancelListener;
 
-    public AppointmentAdapter(Context context,ArrayList<AppointmentDataModel> appointmentList) {
+    public AppointmentAdapter(Context context, ArrayList<AppointmentDataModel> appointmentList, onCancelListener onCancelListener) {
         this.context = context;
         this.dataModels = appointmentList;
+        this.onCancelListener = onCancelListener;
     }
 
     @NonNull
@@ -44,6 +46,15 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
         Glide.with(context).load(dataModel.getHospitalImage()).into(holder.ivLogo);
         holder.tvHospitalName.setText(dataModel.getHospitalName());
         holder.tvAddress.setText(dataModel.getHospitalAddress());
+        holder.tvScheduleDate.setText(dataModel.getDate());
+        holder.tvScheduleTime.setText(dataModel.getTime());
+
+        holder.btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onCancelListener.onCancelled(dataModel, position);
+            }
+        });
     }
 
     @Override
@@ -54,7 +65,8 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
     static class AppointmentHolder extends RecyclerView.ViewHolder {
 
         ImageView ivLogo;
-        TextView tvHospitalName, tvAddress, tvTitle, tvDate, tvTime;
+        TextView tvHospitalName, tvAddress, tvTitle, tvDate, tvTime, tvScheduleDate, tvScheduleTime;
+        Button btnCancel;
 
         public AppointmentHolder(View itemView) {
             super(itemView);
@@ -65,6 +77,13 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
             tvTitle = itemView.findViewById(R.id.tv_title);
             tvDate = itemView.findViewById(R.id.tv_date);
             tvTime = itemView.findViewById(R.id.tv_time_slot);
+            btnCancel = itemView.findViewById(R.id.btn_cancel);
+            tvScheduleDate = itemView.findViewById(R.id.tv_schedule_date);
+            tvScheduleTime = itemView.findViewById(R.id.tv_time);
         }
+    }
+
+    public interface onCancelListener {
+        void onCancelled(AppointmentDataModel dataModel, int pos);
     }
 }
