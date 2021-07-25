@@ -39,12 +39,20 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
     PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
     FirebaseFirestore firestore;
     ImageView ivBack;
+    String phone;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
         init();
+
+        Intent intent = getIntent();
+
+        if (intent != null) {
+            phone = intent.getStringExtra("phone");
+            etPhone.setText(phone);
+        }
 
         firestore = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();

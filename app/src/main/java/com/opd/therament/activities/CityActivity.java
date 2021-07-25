@@ -33,9 +33,9 @@ public class CityActivity extends AppCompatActivity implements CityAdapter.onCit
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_city);
         init();
+        sharedPreferences = getSharedPreferences(getString(R.string.preferences), MODE_PRIVATE);
         firestore = FirebaseFirestore.getInstance();
         getCities();
-        sharedPreferences = getSharedPreferences(getString(R.string.preferences), MODE_PRIVATE);
     }
 
     public void init() {

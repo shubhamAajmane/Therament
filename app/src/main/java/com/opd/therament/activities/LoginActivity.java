@@ -25,6 +25,7 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
@@ -36,8 +37,8 @@ import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.opd.therament.R;
 import com.opd.therament.datamodels.UserDataModel;
 import com.opd.therament.utilities.ConnectivityManager;
@@ -67,6 +68,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         mAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
+        FirebaseApp.initializeApp(this);
 
         TextView googleButtonLabel = (TextView) googleSignInButton.getChildAt(0);
         googleButtonLabel.setText("Continue with Google");
@@ -134,29 +136,25 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         CollectionReference userCollection = firestore.collection(getString(R.string.collection_users));
 
-        userCollection.get().addOnCompleteListener(task -> {
+        userCollection.whereEqualTo("userId", currentUser.getUid()).get().addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
 
-                String userId = currentUser.getUid();
+                for (DocumentSnapshot document : task.getResult()) {
 
-                for (QueryDocumentSnapshot document : task.getResult()) {
-
-                    UserDataModel oldUser = document.toObject(UserDataModel.class);
-
-                    if (oldUser.getUserId().equals(userId)) {
+                    if (document.exists()) {
                         isRegistered = true;
                     }
                 }
 
                 if (!isRegistered) {
-                    DocumentReference userDoc = userCollection.document(userId);
+                    DocumentReference userDoc = userCollection.document(currentUser.getUid());
 
                     UserDataModel newUser = new UserDataModel();
                     newUser.setName(currentUser.getDisplayName());
                     newUser.setPhone(currentUser.getPhoneNumber());
                     newUser.setEmail(currentUser.getEmail());
-                    newUser.setUserId(userId);
+                    newUser.setUserId(currentUser.getUid());
                     userDoc.set(newUser);
                     startActivity(new Intent(LoginActivity.this, CityActivity.class));
                 } else {
@@ -233,25 +231,24 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void checkPhoneNo(String phone) {
         CollectionReference userCollection = firestore.collection(getString(R.string.collection_users));
 
-        userCollection.get().addOnCompleteListener(task -> {
+        userCollection.whereEqualTo("phone", phone).get().addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
 
                 boolean isRegistered = false;
 
-                for (QueryDocumentSnapshot documentSnapshot : Objects.requireNonNull(task.getResult())) {
+                for (DocumentSnapshot documentSnapshot : Objects.requireNonNull(task.getResult())) {
 
-                    UserDataModel userDataModel = documentSnapshot.toObject(UserDataModel.class);
-
-                    if (userDataModel.getPhone() != null) {
-                        if (userDataModel.getPhone().equals(phone)) {
-                            isRegistered = true;
-                        }
+                    if (documentSnapshot.exists()) {
+                        isRegistered = true;
                     }
                 }
 
                 if (!isRegistered) {
                     Toast.makeText(LoginActivity.this, "Phone no not registered", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(this, SignupActivity.class);
+                    intent.putExtra("phone", phone);
+                    startActivity(intent);
                 } else {
                     PhoneAuthOptions options = PhoneAuthOptions.newBuilder()
                             .setPhoneNumber("+91" + phone).setTimeout(60L, TimeUnit.SECONDS)

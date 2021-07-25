@@ -163,7 +163,7 @@
         android:background="@drawable/edit_text_bg"
         android:fontFamily="@font/regular"
         android:gravity="start"
-        android:hint="Enter your symptoms in short, max 300 characters"
+        android:hint="Write your symptoms in short, max 300 characters"
         android:inputType="textMultiLine"
         android:maxLength="300"
         android:padding="10dp"

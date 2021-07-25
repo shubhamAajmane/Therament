@@ -3,6 +3,16 @@ package com.opd.therament.datamodels;
 public class AppointmentDataModel {
     String id, selectedDate, selectedTime, title, description, time, date, hospitalId, hospitalImage, hospitalName, hospitalAddress;
 
+    Boolean isBooked = false;
+
+    public Boolean getBooked() {
+        return isBooked;
+    }
+
+    public void setBooked(Boolean booked) {
+        isBooked = booked;
+    }
+
     public String getHospitalImage() {
         return hospitalImage;
     }

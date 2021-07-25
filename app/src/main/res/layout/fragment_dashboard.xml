@@ -36,7 +36,7 @@
             android:imeOptions="actionDone"
             android:background="@drawable/edit_text_bg"
             android:fontFamily="@font/regular"
-            android:hint="Search Hospital"
+            android:hint="Search Hospital Name"
             android:padding="10dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

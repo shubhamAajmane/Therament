@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -142,7 +141,6 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
         ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(getActivity(), ivLogo, "animation");
 
         String hospitalDetails = new Gson().toJson(hospitalModel);
-        Log.d("DETAILS", hospitalDetails);
         Intent intent = new Intent(getActivity(), HospitalActivity.class);
         intent.putExtra("hospitalDetails", hospitalDetails);
         startActivity(intent, options.toBundle());
@@ -173,12 +171,5 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
                 }
             });
         }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-
-        sharedPreferences.edit().putInt("clickId", R.id.category_all).apply();
     }
 }

@@ -217,14 +217,17 @@ public class AppointmentActivity extends AppCompatActivity {
             updatedDateList.add(result);
         }
 
-        if (!updatedDateList.get(1).equals(dateList.get(1).getDate())) {
+        if (dateList.size() != 1) {
 
-            for (int i = 0; i < dateList.size(); i++) {
-                DocumentReference dateDoc = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalDetails.getId())
-                        .collection(getString(R.string.collection_timeslots)).document(dateList.get(i).getId());
+            if (!updatedDateList.get(1).equals(dateList.get(1).getDate())) {
 
-                dateDoc.update("date", updatedDateList.get(i));
-                dateList.get(i).setDate(updatedDateList.get(i));
+                for (int i = 0; i < dateList.size(); i++) {
+                    DocumentReference dateDoc = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalDetails.getId())
+                            .collection(getString(R.string.collection_timeslots)).document(dateList.get(i).getId());
+
+                    dateDoc.update("date", updatedDateList.get(i));
+                    dateList.get(i).setDate(updatedDateList.get(i));
+                }
             }
         }
         dateAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, dateList);
@@ -300,7 +303,7 @@ public class AppointmentActivity extends AppCompatActivity {
             contact = userDataModel.getEmail();
         }
 
-        String msgBody = "Title: " + etTitle.getText().toString() + "\nDescription: " + etDescription.getText().toString() + "\nUser Name: " + userName + "\nContact Details: " + contact + "\nSelected Date: " + selectedDate + "\nTime Slot: " + selectedTime + "\nScheduled On: " + date + " " + time;
+        String msgBody = "Title: " + etTitle.getText().toString() + "\nDescription: " + etDescription.getText().toString() + "\nUser Name: " + userName + "\nContact Details: " + contact + "\nSelected Date: " + selectedDate + "\nSelected Time Slot: " + selectedTime + "\nScheduled On: " + date + " " + time;
 
         Thread sender = new Thread(() -> {
             boolean mailSent;

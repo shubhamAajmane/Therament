@@ -40,7 +40,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewHold
         ReviewDataModel dataModel = reviewList.get(position);
         holder.tvName.setText(dataModel.getName());
         holder.tvReview.setText(dataModel.getReview());
-        holder.ratingBar.setRating(Integer.parseInt(dataModel.getRating()));
+        holder.ratingBar.setRating(Float.parseFloat(dataModel.getRating()));
     }
 
     @Override

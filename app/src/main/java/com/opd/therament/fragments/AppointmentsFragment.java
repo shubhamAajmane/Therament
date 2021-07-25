@@ -2,11 +2,13 @@ package com.opd.therament.fragments;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -16,22 +18,43 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.gson.Gson;
 import com.opd.therament.R;
+import com.opd.therament.activities.HospitalActivity;
+import com.opd.therament.activities.PreviousAppointmentActivity;
 import com.opd.therament.adapters.AppointmentAdapter;
 import com.opd.therament.datamodels.AppointmentDataModel;
+import com.opd.therament.datamodels.DateDataModel;
+import com.opd.therament.datamodels.HospitalDataModel;
+import com.opd.therament.datamodels.TimeSlotDataModel;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
-public class AppointmentsFragment extends Fragment implements AppointmentAdapter.onCancelListener {
+public class AppointmentsFragment extends Fragment implements AppointmentAdapter.onCancelListener, AppointmentAdapter.ItemViewClick {
 
     ImageView ivBack;
     RecyclerView rvAppointments;
     FirebaseFirestore firestore;
     FirebaseAuth mAuth;
-    ArrayList<AppointmentDataModel> appointmentList = new ArrayList<>();
+    ArrayList<AppointmentDataModel> appointmentList;
+    CollectionReference appColl;
+    AppointmentAdapter appointmentAdapter;
+    SimpleDateFormat dateFormat, timeFormat;
+    String date, time;
+    TextView tvPreviousAppointments;
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        getAppointments();
+    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -43,24 +66,47 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
 
         mAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
-        getAppointments();
+        tvPreviousAppointments = root.findViewById(R.id.tv_previous_appointments);
+        tvPreviousAppointments.setOnClickListener(view -> {
+            startActivity(new Intent(getActivity(), PreviousAppointmentActivity.class));
+        });
+
+        dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        timeFormat = new SimpleDateFormat("hh:mm aa", Locale.getDefault());
+        time = timeFormat.format(new Date());
+        date = dateFormat.format(new Date());
         return root;
     }
 
+    private void automaticDone() {
+        String date = "25/07/2021";
+        String time = "11:00 am";
+
+        for (int i = 0; i < appointmentList.size(); i++) {
+            String selectedTime = appointmentList.get(i).getSelectedTime().substring(11);
+            if (date.equals(appointmentList.get(i).getSelectedDate()) && time.equals(selectedTime)) {
+                appointmentList.get(i).setBooked(true);
+                updateStatus(appointmentList.get(i));
+            }
+        }
+    }
+
     private void getAppointments() {
-        CollectionReference appColl = firestore.collection(getString(R.string.collection_users)).document(mAuth.getCurrentUser().getUid()).collection(getString(R.string.collection_appointments));
+        appointmentList = new ArrayList<>();
+
+        appColl = firestore.collection(getString(R.string.collection_users)).document(mAuth.getCurrentUser().getUid()).collection(getString(R.string.collection_appointments));
 
         appColl.orderBy("date", Query.Direction.DESCENDING).get().addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
 
                 for (DocumentSnapshot doc : task.getResult()) {
-
                     AppointmentDataModel dataModel = doc.toObject(AppointmentDataModel.class);
                     appointmentList.add(dataModel);
                 }
-                rvAppointments.setAdapter(new AppointmentAdapter(getContext(), appointmentList, this));
-
+                appointmentAdapter = new AppointmentAdapter(getContext(), appointmentList, this, this, "Other");
+                rvAppointments.setAdapter(appointmentAdapter);
+                automaticDone();
             } else {
                 Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
             }
@@ -68,17 +114,116 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
     }
 
     @Override
-    public void onCancelled(AppointmentDataModel dataModel, int pos) {
+    public void onCancelled(AppointmentDataModel dataModel) {
 
         new AlertDialog.Builder(getContext()).setTitle("Cancel Appointment").setMessage("Are you sure you want to cancel your appointment?").setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                DocumentReference appDoc = appColl.document(dataModel.getId());
 
+                appDoc.delete().addOnCompleteListener(task -> {
+
+                    if (task.isSuccessful()) {
+                        dataModel.setBooked(false);
+                        updateStatus(dataModel);
+                    }
+                });
             }
-        }).setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-            }
+        }).setNegativeButton("No", (dialogInterface, i) -> {
         }).create().show();
+    }
+
+    private void updateStatus(AppointmentDataModel dataModel) {
+
+        CollectionReference dateColl = firestore.collection(getString(R.string.collection_hospitals)).document(dataModel.getHospitalId()).collection(getString(R.string.collection_timeslots));
+
+        dateColl.whereEqualTo("date", dataModel.getSelectedDate()).get().addOnCompleteListener(task -> {
+            CollectionReference timeColl = null;
+            DateDataModel date = null;
+
+            if (task.isSuccessful()) {
+                for (DocumentSnapshot doc : task.getResult()) {
+
+                    if (doc.exists()) {
+                        date = doc.toObject(DateDataModel.class);
+                        timeColl = dateColl.document(date.getId()).collection(getString(R.string.collection_times));
+                    }
+                }
+
+                if (timeColl != null) {
+
+                    DateDataModel finalDate = date;
+                    timeColl.whereEqualTo("timeSlot", dataModel.getSelectedTime()).get().addOnCompleteListener(task1 -> {
+                        TimeSlotDataModel time = null;
+
+                        if (task1.isSuccessful()) {
+                            for (DocumentSnapshot doc : task1.getResult()) {
+                                if (doc.exists()) {
+                                    time = doc.toObject(TimeSlotDataModel.class);
+                                }
+                            }
+
+                            int status = Integer.parseInt(time.getStatus());
+                            if (status != 0) {
+
+                                int decrement = --status;
+                                DocumentReference timeRef = firestore.collection(getString(R.string.collection_hospitals)).document(dataModel.getHospitalId()).collection(getString(R.string.collection_timeslots)).document(finalDate.getId()).collection(getString(R.string.collection_times)).document(time.getId());
+                                timeRef.update("status", String.valueOf(decrement)).addOnCompleteListener(task2 -> {
+                                    if (task2.isSuccessful()) {
+                                        if (!dataModel.getBooked()) {
+                                            Toast.makeText(getContext(), "Appointment Cancelled Successfully", Toast.LENGTH_SHORT).show();
+                                        }
+                                        updateHistory(dataModel);
+                                    }
+                                });
+                            }
+                        } else {
+                            Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            } else {
+                Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateHistory(AppointmentDataModel dataModel) {
+
+        if (!dataModel.getBooked()) {
+
+            DocumentReference historyDoc = firestore.collection(getString(R.string.collection_users)).document(mAuth.getCurrentUser().getUid()).collection(getString(R.string.collection_history)).document(dataModel.getId());
+            historyDoc.set(dataModel).addOnCompleteListener(task -> {
+
+                if (task.isSuccessful()) {
+                    appointmentList.remove(dataModel);
+                }
+            });
+        }
+        appointmentAdapter.updateList(appointmentList);
+    }
+
+    @Override
+    public void onItemClicked(AppointmentDataModel dataModel) {
+        DocumentReference hospitalDoc = firestore.collection(getString(R.string.collection_hospitals)).document(dataModel.getHospitalId());
+
+        hospitalDoc.get().addOnCompleteListener(task -> {
+
+            if (task.isSuccessful()) {
+                DocumentSnapshot doc = task.getResult();
+
+                if (doc.exists()) {
+                    HospitalDataModel hospitalDataModel = doc.toObject(HospitalDataModel.class);
+                    String hospitalDetails = new Gson().toJson(hospitalDataModel);
+                    Intent intent = new Intent(getActivity(), HospitalActivity.class);
+                    intent.putExtra("hospitalDetails", hospitalDetails);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(getContext(), "Hospital Not found", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

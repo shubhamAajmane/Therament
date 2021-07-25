@@ -62,8 +62,10 @@ public class CategoryDialog extends Dialog implements View.OnClickListener {
         });
 
         btnDone.setOnClickListener(view -> {
-            getCategories.getCategoryList(category);
-            dismiss();
+            if (!category.isEmpty()) {
+                getCategories.getCategoryList(category);
+                dismiss();
+            }
         });
 
         sharedPreferences = activity.getSharedPreferences(activity.getString(R.string.preferences), Context.MODE_PRIVATE);
@@ -73,8 +75,6 @@ public class CategoryDialog extends Dialog implements View.OnClickListener {
     @Override
     public void onClick(View view) {
 
-        int clickedId = view.getId();
-        sharedPreferences.edit().putInt("clickId", clickedId).apply();
 
         switch (view.getId()) {
 
@@ -111,11 +111,18 @@ public class CategoryDialog extends Dialog implements View.OnClickListener {
             case R.id.category_all: {
                 category = "All";
             }
+            break;
         }
+        int clickedId = view.getId();
+        sharedPreferences.edit().putInt("clickId", clickedId).apply();
     }
 
     public interface getCategories {
-
         void getCategoryList(String category);
+    }
+
+    @Override
+    public void onDetachedFromWindow() {
+        sharedPreferences.edit().putInt("clickId", R.id.category_all).apply();
     }
 }
