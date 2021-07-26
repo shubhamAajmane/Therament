@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -30,6 +31,7 @@ import com.opd.therament.activities.HospitalActivity;
 import com.opd.therament.adapters.HospitalAdapter;
 import com.opd.therament.datamodels.HospitalDataModel;
 import com.opd.therament.utilities.CategoryDialog;
+import com.opd.therament.utilities.LoadingDialog;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -41,10 +43,18 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
     FirebaseFirestore firestore;
     RecyclerView rvHospitals;
     String cityName;
-    ArrayList<HospitalDataModel> hospitalsList = new ArrayList<>();
     ImageView ivCategory;
     HospitalAdapter hospitalAdapter;
     EditText etSearch;
+    TextView tvNoHospitals;
+    LottieAnimationView emptyAnimation;
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        LoadingDialog.showDialog(getContext());
+        getHospitals();
+    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -54,7 +64,6 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
         sharedPreferences = requireContext().getSharedPreferences(getString(R.string.preferences), Context.MODE_PRIVATE);
         cityName = sharedPreferences.getString("city", "");
         tvCityName.setText(cityName);
-        getHospitals();
 
         tvCityName.setOnClickListener(view -> {
             startActivity(new Intent(getActivity(), CityActivity.class));
@@ -68,6 +77,8 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
     }
 
     private void getHospitals() {
+        ArrayList<HospitalDataModel> hospitalsList = new ArrayList<>();
+
         CollectionReference hospitalsColl = firestore.collection(getString(R.string.collection_hospitals));
 
         hospitalsColl.whereEqualTo("city", cityName).get().addOnCompleteListener(task -> {
@@ -77,10 +88,21 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
                     HospitalDataModel datamodel = doc.toObject(HospitalDataModel.class);
                     hospitalsList.add(datamodel);
                 }
-                hospitalAdapter = new HospitalAdapter(getContext(), hospitalsList, this);
-                rvHospitals.setAdapter(hospitalAdapter);
+                if (hospitalsList.isEmpty()) {
+                    emptyAnimation.setVisibility(View.VISIBLE);
+                    tvNoHospitals.setVisibility(View.VISIBLE);
+                    rvHospitals.setVisibility(View.INVISIBLE);
+                } else {
+                    emptyAnimation.setVisibility(View.INVISIBLE);
+                    tvNoHospitals.setVisibility(View.INVISIBLE);
+                    rvHospitals.setVisibility(View.VISIBLE);
+                    hospitalAdapter = new HospitalAdapter(getContext(), hospitalsList, this);
+                    rvHospitals.setAdapter(hospitalAdapter);
+                }
+                LoadingDialog.dismissDialog();
 
             } else {
+                LoadingDialog.dismissDialog();
                 Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });
@@ -93,6 +115,8 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
         rvHospitals.setLayoutManager(new LinearLayoutManager(getContext()));
         ivCategory = root.findViewById(R.id.iv_category);
         etSearch = root.findViewById(R.id.et_search);
+        emptyAnimation = root.findViewById(R.id.empty_animation);
+        tvNoHospitals = root.findViewById(R.id.tv_no_appointments);
 
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
@@ -128,7 +152,17 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
                         sortedList.add(datamodel);
                     }
                 }
-                hospitalAdapter.updateList(sortedList);
+                if (sortedList.isEmpty()) {
+                    emptyAnimation.setVisibility(View.VISIBLE);
+                    tvNoHospitals.setVisibility(View.VISIBLE);
+                    rvHospitals.setVisibility(View.INVISIBLE);
+                } else {
+                    emptyAnimation.setVisibility(View.INVISIBLE);
+                    tvNoHospitals.setVisibility(View.INVISIBLE);
+                    rvHospitals.setVisibility(View.VISIBLE);
+                    hospitalAdapter.updateList(sortedList);
+                }
+                LoadingDialog.dismissDialog();
 
             } else {
                 Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
@@ -148,7 +182,7 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
 
     @Override
     public void getCategoryList(String category) {
-
+        LoadingDialog.showDialog(getContext());
         if (category.equals("All")) {
             getHospitals();
         } else {
@@ -164,9 +198,20 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
                         HospitalDataModel datamodel = doc.toObject(HospitalDataModel.class);
                         sortedList.add(datamodel);
                     }
-                    hospitalAdapter.updateList(sortedList);
+                    if (sortedList.isEmpty()) {
+                        emptyAnimation.setVisibility(View.VISIBLE);
+                        tvNoHospitals.setVisibility(View.VISIBLE);
+                        rvHospitals.setVisibility(View.INVISIBLE);
+                    } else {
+                        emptyAnimation.setVisibility(View.INVISIBLE);
+                        tvNoHospitals.setVisibility(View.INVISIBLE);
+                        rvHospitals.setVisibility(View.VISIBLE);
+                        hospitalAdapter.updateList(sortedList);
+                    }
+                    LoadingDialog.dismissDialog();
 
                 } else {
+                    LoadingDialog.dismissDialog();
                     Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
                 }
             });

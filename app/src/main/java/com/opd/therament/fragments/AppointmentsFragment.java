@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -31,6 +32,7 @@ import com.opd.therament.datamodels.AppointmentDataModel;
 import com.opd.therament.datamodels.DateDataModel;
 import com.opd.therament.datamodels.HospitalDataModel;
 import com.opd.therament.datamodels.TimeSlotDataModel;
+import com.opd.therament.utilities.LoadingDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -48,11 +50,13 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
     AppointmentAdapter appointmentAdapter;
     SimpleDateFormat dateFormat, timeFormat;
     String date, time;
-    TextView tvPreviousAppointments;
+    TextView tvPreviousAppointments, tvNoAppointments;
+    LottieAnimationView emptyAnimation;
 
     @Override
     public void onResume() {
         super.onResume();
+        LoadingDialog.showDialog(getContext());
         getAppointments();
     }
 
@@ -63,7 +67,8 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
         ivBack = root.findViewById(R.id.iv_back);
         rvAppointments = root.findViewById(R.id.rv_appointments);
         rvAppointments.setLayoutManager(new LinearLayoutManager(getContext()));
-
+        tvNoAppointments = root.findViewById(R.id.tv_no_appointments);
+        emptyAnimation = root.findViewById(R.id.empty_animation);
         mAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
         tvPreviousAppointments = root.findViewById(R.id.tv_previous_appointments);
@@ -79,12 +84,13 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
     }
 
     private void automaticDone() {
-        String date = "25/07/2021";
+        String date = "30/07/2021";
         String time = "11:00 am";
 
         for (int i = 0; i < appointmentList.size(); i++) {
             String selectedTime = appointmentList.get(i).getSelectedTime().substring(11);
             if (date.equals(appointmentList.get(i).getSelectedDate()) && time.equals(selectedTime)) {
+                LoadingDialog.showDialog(getContext());
                 appointmentList.get(i).setBooked(true);
                 updateStatus(appointmentList.get(i));
             }
@@ -104,10 +110,21 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
                     AppointmentDataModel dataModel = doc.toObject(AppointmentDataModel.class);
                     appointmentList.add(dataModel);
                 }
-                appointmentAdapter = new AppointmentAdapter(getContext(), appointmentList, this, this, "Other");
-                rvAppointments.setAdapter(appointmentAdapter);
-                automaticDone();
+                if (appointmentList.isEmpty()) {
+                    emptyAnimation.setVisibility(View.VISIBLE);
+                    tvNoAppointments.setVisibility(View.VISIBLE);
+                    rvAppointments.setVisibility(View.INVISIBLE);
+                } else {
+                    emptyAnimation.setVisibility(View.INVISIBLE);
+                    tvNoAppointments.setVisibility(View.INVISIBLE);
+                    rvAppointments.setVisibility(View.VISIBLE);
+                    appointmentAdapter = new AppointmentAdapter(getContext(), appointmentList, this, this, "Other");
+                    rvAppointments.setAdapter(appointmentAdapter);
+                    automaticDone();
+                }
+                LoadingDialog.dismissDialog();
             } else {
+                LoadingDialog.dismissDialog();
                 Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });
@@ -124,6 +141,7 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
                 appDoc.delete().addOnCompleteListener(task -> {
 
                     if (task.isSuccessful()) {
+                        LoadingDialog.showDialog(getContext());
                         dataModel.setBooked(false);
                         updateStatus(dataModel);
                     }
@@ -178,11 +196,13 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
                                 });
                             }
                         } else {
+                            LoadingDialog.dismissDialog();
                             Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
             } else {
+                LoadingDialog.dismissDialog();
                 Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });
@@ -201,6 +221,8 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
             });
         }
         appointmentAdapter.updateList(appointmentList);
+        getAppointments();
+        LoadingDialog.dismissDialog();
     }
 
     @Override
@@ -219,9 +241,11 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
                     intent.putExtra("hospitalDetails", hospitalDetails);
                     startActivity(intent);
                 } else {
+                    LoadingDialog.dismissDialog();
                     Toast.makeText(getContext(), "Hospital Not found", Toast.LENGTH_SHORT).show();
                 }
             } else {
+                LoadingDialog.dismissDialog();
                 Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });

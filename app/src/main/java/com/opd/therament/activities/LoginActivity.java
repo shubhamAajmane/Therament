@@ -42,6 +42,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.opd.therament.R;
 import com.opd.therament.datamodels.UserDataModel;
 import com.opd.therament.utilities.ConnectivityManager;
+import com.opd.therament.utilities.LoadingDialog;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -91,12 +92,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             @Override
             public void onVerificationFailed(@NonNull FirebaseException e) {
+                LoadingDialog.dismissDialog();
                 Toast.makeText(LoginActivity.this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onCodeSent(@NonNull String s, @NonNull PhoneAuthProvider.ForceResendingToken forceResendingToken) {
                 super.onCodeSent(s, forceResendingToken);
+                LoadingDialog.dismissDialog();
                 Toast.makeText(LoginActivity.this, "OTP has been sent to your phone no", Toast.LENGTH_SHORT).show();
 
                 Intent login = new Intent(LoginActivity.this, VerificationActivity.class);
@@ -184,6 +187,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     etPhone.setError("Invalid phone no");
                 } else {
                     if (new ConnectivityManager().checkConnectivity(LoginActivity.this)) {
+                        LoadingDialog.showDialog(this);
                         checkPhoneNo(etPhone.getText().toString());
                     } else {
                         new AlertDialog.Builder(LoginActivity.this).setTitle("No Internet").setMessage("Please check your internet connection").setPositiveButton("Open Settings", new DialogInterface.OnClickListener() {
@@ -245,6 +249,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
 
                 if (!isRegistered) {
+                    LoadingDialog.dismissDialog();
                     Toast.makeText(LoginActivity.this, "Phone no not registered", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(this, SignupActivity.class);
                     intent.putExtra("phone", phone);

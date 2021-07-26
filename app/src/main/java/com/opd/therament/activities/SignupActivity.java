@@ -27,6 +27,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.opd.therament.R;
 import com.opd.therament.datamodels.UserDataModel;
 import com.opd.therament.utilities.ConnectivityManager;
+import com.opd.therament.utilities.LoadingDialog;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -66,6 +67,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
 
             @Override
             public void onVerificationFailed(@NonNull FirebaseException e) {
+                LoadingDialog.dismissDialog();
                 Toast.makeText(SignupActivity.this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             }
 
@@ -77,6 +79,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
+                        LoadingDialog.dismissDialog();
                         Intent otpIntent = new Intent(SignupActivity.this, VerificationActivity.class);
                         otpIntent.putExtra("auth", s);
                         otpIntent.putExtra("name", etName.getText().toString());
@@ -112,6 +115,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
                     etPhone.setError("Enter valid phone no");
                 } else {
                     if (new ConnectivityManager().checkConnectivity(SignupActivity.this)) {
+                        LoadingDialog.showDialog(this);
                         checkPhoneNo(etPhone.getText().toString());
                     } else {
                         new AlertDialog.Builder(SignupActivity.this).setTitle("No Internet").setMessage("Please check your internet connection").setPositiveButton("Open Settings", new DialogInterface.OnClickListener() {
@@ -158,6 +162,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
                 }
 
                 if (isRegistered) {
+                    LoadingDialog.dismissDialog();
                     Toast.makeText(SignupActivity.this, "Phone no already registered", Toast.LENGTH_SHORT).show();
                 } else {
                     sendVerificationCode(phone);

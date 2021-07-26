@@ -25,6 +25,7 @@ import com.opd.therament.adapters.ReviewAdapter;
 import com.opd.therament.datamodels.DoctorDataModel;
 import com.opd.therament.datamodels.HospitalDataModel;
 import com.opd.therament.datamodels.ReviewDataModel;
+import com.opd.therament.utilities.LoadingDialog;
 
 import java.util.ArrayList;
 
@@ -46,7 +47,6 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.activity_hospital);
         init();
         firestore = FirebaseFirestore.getInstance();
-
         Intent intent = getIntent();
 
         if (intent != null) {
@@ -85,49 +85,7 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
         Glide.with(this).load(hospitalDatamodel.getImageUrl()).into(ivLogo);
         ratingBar.setRating(Float.parseFloat(hospitalDatamodel.getRating()));
 
-       /* DoctorDataModel d1 = new DoctorDataModel();
-        d1.setName("Dr. J M Johnson");
-        d1.setDegree("M.B.B.S");
-
-        DoctorDataModel d2 = new DoctorDataModel();
-        d2.setName("Dr. K D Thomson");
-        d2.setDegree("B.A.M.S");
-
-        DoctorDataModel d3 = new DoctorDataModel();
-        d3.setName("Dr. R D Potter");
-        d3.setDegree("B.D.S");
-
-        doctorsList.add(d1);
-        doctorsList.add(d2);
-        doctorsList.add(d3);
-        rvDoctors.setAdapter(new DoctorAdapter(this, doctorsList));
-
-        ReviewDataModel r1 = new ReviewDataModel();
-        r1.setName("Shubham Aajmane");
-        r1.setRating("4");
-        r1.setReview("Qualified doctors");
-
-        ReviewDataModel r2 = new ReviewDataModel();
-        r2.setName("Abhijeet Neje");
-        r2.setRating("5");
-        r2.setReview("Staff was very good");
-
-        ReviewDataModel r3 = new ReviewDataModel();
-        r3.setName("Bahar Khedkar");
-        r3.setRating("3");
-        r3.setReview("Best service by this hospital");
-
-        ReviewDataModel r4 = new ReviewDataModel();
-        r4.setName("Shreya Koulage");
-        r4.setRating("4");
-        r4.setReview("Hospital environment was very clean and tidy");
-
-        reviewsList.add(r1);
-        reviewsList.add(r2);
-        reviewsList.add(r3);
-        reviewsList.add(r4);
-        rvReviews.setAdapter(new ReviewAdapter(this, reviewsList, false));*/
-
+        LoadingDialog.showDialog(this);
         getDoctors();
         getReviews();
     }
@@ -143,6 +101,7 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
                     doctorsList.add(doctorDatamodel);
                 }
                 rvDoctors.setAdapter(new DoctorAdapter(HospitalActivity.this, doctorsList));
+                LoadingDialog.dismissDialog();
             } else {
                 Toast.makeText(HospitalActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
@@ -157,10 +116,11 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
             if (task.isSuccessful()) {
                 for (DocumentSnapshot doc : task.getResult()) {
                     ReviewDataModel reviewDataModel = doc.toObject(ReviewDataModel.class);
-                    Log.d("Review",new Gson().toJson(reviewDataModel));
+                    Log.d("Review", new Gson().toJson(reviewDataModel));
                     reviewsList.add(reviewDataModel);
                 }
-                rvReviews.setAdapter(new ReviewAdapter(this,reviewsList,false));
+                rvReviews.setAdapter(new ReviewAdapter(this, reviewsList, false));
+                LoadingDialog.dismissDialog();
             } else {
                 Toast.makeText(HospitalActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
@@ -180,13 +140,15 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
             case R.id.btn_appointment: {
                 Intent intent = new Intent(this, AppointmentActivity.class);
                 String hospitalDetails = new Gson().toJson(hospitalDatamodel);
-                intent.putExtra("hospitalDetails",hospitalDetails);
+                intent.putExtra("hospitalDetails", hospitalDetails);
                 startActivity(intent);
             }
             break;
 
             case R.id.tv_view_all: {
-                startActivity(new Intent(this, ReviewsActivity.class));
+                Intent intent = new Intent(this, ReviewsActivity.class);
+                intent.putExtra("hospitalId", hospitalDatamodel.getId());
+                startActivity(intent);
             }
             break;
         }

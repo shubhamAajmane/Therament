@@ -62,7 +62,7 @@ public class CategoryDialog extends Dialog implements View.OnClickListener {
         });
 
         btnDone.setOnClickListener(view -> {
-            if (!category.isEmpty()) {
+            if (category != null) {
                 getCategories.getCategoryList(category);
                 dismiss();
             }

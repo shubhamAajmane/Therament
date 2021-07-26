@@ -16,6 +16,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.opd.therament.R;
 import com.opd.therament.datamodels.ReviewDataModel;
 import com.opd.therament.datamodels.UserDataModel;
+import com.opd.therament.utilities.LoadingDialog;
 
 public class WriteReviewActivity extends AppCompatActivity {
 
@@ -62,7 +63,7 @@ public class WriteReviewActivity extends AppCompatActivity {
             } else if (ratingBar.getRating() == 0) {
                 Toast.makeText(this, "Please Rate", Toast.LENGTH_SHORT).show();
             } else {
-
+                LoadingDialog.showDialog(this);
                 DocumentReference userDoc = firestore.collection(getString(R.string.collection_users)).document(mAuth.getCurrentUser().getUid());
                 userDoc.get().addOnCompleteListener(task -> {
 
@@ -76,9 +77,11 @@ public class WriteReviewActivity extends AppCompatActivity {
                             reviewDataModel.setReview(etReview.getText().toString());
                             rateHospital(reviewDataModel);
                         } else {
+                            LoadingDialog.dismissDialog();
                             Toast.makeText(this, "User doesn't exist", Toast.LENGTH_SHORT).show();
                         }
                     } else {
+                        LoadingDialog.dismissDialog();
                         Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -94,6 +97,7 @@ public class WriteReviewActivity extends AppCompatActivity {
             hosDoc.update("rating", reviewDataModel.getRating(), "review", reviewDataModel.getReview()).addOnCompleteListener(task -> {
 
                 if (!task.isSuccessful()) {
+                    LoadingDialog.dismissDialog();
                     Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show();
                 }
 
@@ -105,10 +109,12 @@ public class WriteReviewActivity extends AppCompatActivity {
                     DocumentReference appointment = FirebaseFirestore.getInstance().collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getCurrentUser().getUid()).collection(getString(R.string.collection_appointments)).document(appointmentId);
                     appointment.delete();
                 } else {
+                    LoadingDialog.dismissDialog();
                     Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show();
                 }
             });
         }
+        LoadingDialog.dismissDialog();
         Toast.makeText(this, "Rated Successfully", Toast.LENGTH_SHORT).show();
         finish();
     }

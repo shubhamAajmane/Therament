@@ -26,6 +26,7 @@ import com.opd.therament.datamodels.DateDataModel;
 import com.opd.therament.datamodels.HospitalDataModel;
 import com.opd.therament.datamodels.TimeSlotDataModel;
 import com.opd.therament.datamodels.UserDataModel;
+import com.opd.therament.utilities.LoadingDialog;
 import com.opd.therament.utilities.MailSender;
 
 import java.text.SimpleDateFormat;
@@ -52,6 +53,12 @@ public class AppointmentActivity extends AppCompatActivity {
     SimpleDateFormat dateFormat, timeFormat;
     TimeSlotDataModel t = new TimeSlotDataModel();
     HospitalDataModel hospitalDetails;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LoadingDialog.showDialog(this);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +89,7 @@ public class AppointmentActivity extends AppCompatActivity {
             } else if (etTitle.getText().toString().isEmpty() || etDescription.getText().toString().isEmpty()) {
                 Toast.makeText(AppointmentActivity.this, "Please enter all fields", Toast.LENGTH_SHORT).show();
             } else {
+                LoadingDialog.showDialog(this);
                 scheduleAppointment();
             }
         });
@@ -156,19 +164,11 @@ public class AppointmentActivity extends AppCompatActivity {
                 spTime.setAdapter(timeAdapter);
 
             } else {
+                LoadingDialog.dismissDialog();
                 Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });
     }
-
-   /* @Override
-    public void onDateSet(DatePicker datePicker, int year, int monthOfYear, int dayOfMonth) {
-        myCalendar.set(Calendar.YEAR, year);
-        myCalendar.set(Calendar.MONTH, monthOfYear);
-        myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-        selectedDate = dateFormat.format(myCalendar.getTime());
-        etDate.setText(selectedDate);
-    }*/
 
     private void getDates() {
 
@@ -193,6 +193,7 @@ public class AppointmentActivity extends AppCompatActivity {
                 }
                 updateDates(dateList);
             } else {
+                LoadingDialog.dismissDialog();
                 Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });
@@ -233,6 +234,7 @@ public class AppointmentActivity extends AppCompatActivity {
         dateAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, dateList);
         dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spDate.setAdapter(dateAdapter);
+        LoadingDialog.dismissDialog();
     }
 
     private void scheduleAppointment() {
@@ -261,12 +263,14 @@ public class AppointmentActivity extends AppCompatActivity {
                 }
 
                 if (isScheduled) {
+                    LoadingDialog.dismissDialog();
                     Toast.makeText(AppointmentActivity.this, "Appointment already scheduled for this hospital on this date and time", Toast.LENGTH_SHORT).show();
                 } else {
                     getUserDetails(appointmentDoc, userDoc);
                 }
 
             } else {
+                LoadingDialog.dismissDialog();
                 Toast.makeText(AppointmentActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });
@@ -284,9 +288,11 @@ public class AppointmentActivity extends AppCompatActivity {
                     UserDataModel userDataModel = doc.toObject(UserDataModel.class);
                     sendEmail(appointmentDoc, userDataModel);
                 } else {
+                    LoadingDialog.dismissDialog();
                     Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
                 }
             } else {
+                LoadingDialog.dismissDialog();
                 Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });
@@ -342,6 +348,7 @@ public class AppointmentActivity extends AppCompatActivity {
             DocumentReference timeRef = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalDetails.getId()).collection(getString(R.string.collection_timeslots)).document(selectedDateModel.getId()).collection(getString(R.string.collection_times)).document(selectedTimeModel.getId());
             int increment = ++status;
             timeRef.update("status", String.valueOf(increment));
+            LoadingDialog.dismissDialog();
             Toast.makeText(AppointmentActivity.this, "Appointment scheduled successfully", Toast.LENGTH_SHORT).show();
             finish();
         });

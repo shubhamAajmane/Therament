@@ -16,6 +16,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.opd.therament.R;
 import com.opd.therament.adapters.CityAdapter;
 import com.opd.therament.datamodels.CityDataModel;
+import com.opd.therament.utilities.LoadingDialog;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -29,13 +30,19 @@ public class CityActivity extends AppCompatActivity implements CityAdapter.onCit
     SharedPreferences sharedPreferences;
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        LoadingDialog.showDialog(this);
+        getCities();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_city);
         init();
         sharedPreferences = getSharedPreferences(getString(R.string.preferences), MODE_PRIVATE);
         firestore = FirebaseFirestore.getInstance();
-        getCities();
     }
 
     public void init() {
@@ -59,8 +66,10 @@ public class CityActivity extends AppCompatActivity implements CityAdapter.onCit
                 if (cityList != null) {
                     cityAdapter = new CityAdapter(CityActivity.this, cityList, this);
                     rvCities.setAdapter(cityAdapter);
+                    LoadingDialog.dismissDialog();
                 }
             } else {
+                LoadingDialog.dismissDialog();
                 Toast.makeText(CityActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });

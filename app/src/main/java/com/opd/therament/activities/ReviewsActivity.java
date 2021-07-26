@@ -1,23 +1,45 @@
 package com.opd.therament.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.gson.Gson;
 import com.opd.therament.R;
 import com.opd.therament.adapters.ReviewAdapter;
 import com.opd.therament.datamodels.ReviewDataModel;
+import com.opd.therament.utilities.LoadingDialog;
 
 import java.util.ArrayList;
 
 public class ReviewsActivity extends AppCompatActivity {
 
     RecyclerView rvReviews;
-    ArrayList<ReviewDataModel> reviewsList = new ArrayList<>();
     ImageView ivBack;
+    FirebaseFirestore firestore;
+    String hospitalId;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Intent intent = getIntent();
+
+        if(intent!=null) {
+            hospitalId = intent.getStringExtra("hospitalId");
+        }
+        LoadingDialog.showDialog(this);
+        getReviews();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,32 +51,29 @@ public class ReviewsActivity extends AppCompatActivity {
         ivBack.setOnClickListener(view -> {
             onBackPressed();
         });
+        firestore = FirebaseFirestore.getInstance();
+    }
 
-        ReviewDataModel r1 = new ReviewDataModel();
-        r1.setName("Shubham Aajmane");
-        r1.setRating("4");
-        r1.setReview("Qualified doctors");
+    private void getReviews() {
 
-        ReviewDataModel r2 = new ReviewDataModel();
-        r2.setName("Abhijeet Neje");
-        r2.setRating("5");
-        r2.setReview("Staff was very good");
+        ArrayList<ReviewDataModel> reviewsList = new ArrayList<>();
 
-        ReviewDataModel r3 = new ReviewDataModel();
-        r3.setName("Bahar Khedkar");
-        r3.setRating("3");
-        r3.setReview("Best service by this hospital");
+        CollectionReference doctorsColl = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalId).collection(getString(R.string.collection_reviews));
 
-        ReviewDataModel r4 = new ReviewDataModel();
-        r4.setName("Shreya Koulage");
-        r4.setRating("4");
-        r4.setReview("Hospital environment was very clean and tidy");
+        doctorsColl.get().addOnCompleteListener(task -> {
 
-        reviewsList.add(r1);
-        reviewsList.add(r2);
-        reviewsList.add(r3);
-        reviewsList.add(r4);
-
-        rvReviews.setAdapter(new ReviewAdapter(this, reviewsList, true));
+            if (task.isSuccessful()) {
+                for (DocumentSnapshot doc : task.getResult()) {
+                    ReviewDataModel reviewDataModel = doc.toObject(ReviewDataModel.class);
+                    Log.d("Review",new Gson().toJson(reviewDataModel));
+                    reviewsList.add(reviewDataModel);
+                }
+                rvReviews.setAdapter(new ReviewAdapter(this,reviewsList,false));
+                LoadingDialog.dismissDialog();
+            } else {
+                LoadingDialog.dismissDialog();
+                Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
