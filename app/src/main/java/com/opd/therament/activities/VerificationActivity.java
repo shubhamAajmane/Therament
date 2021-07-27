@@ -27,6 +27,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.opd.therament.R;
 import com.opd.therament.datamodels.UserDataModel;
 import com.opd.therament.utilities.ConnectivityManager;
+import com.opd.therament.utilities.LoadingDialog;
 import com.opd.therament.utilities.OtpWatcher;
 
 import java.util.concurrent.TimeUnit;
@@ -86,6 +87,7 @@ public class VerificationActivity extends AppCompatActivity {
 
             @Override
             public void onVerificationFailed(@NonNull FirebaseException e) {
+                LoadingDialog.dismissDialog();
                 Toast.makeText(VerificationActivity.this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             }
 
@@ -94,6 +96,8 @@ public class VerificationActivity extends AppCompatActivity {
                 super.onCodeSent(s, forceResendingToken);
                 verificationId = s;
                 resendingToken = forceResendingToken;
+                LoadingDialog.dismissDialog();
+                Toast.makeText(VerificationActivity.this, "OTP has been sent to your phone no", Toast.LENGTH_SHORT).show();
             }
         };
 
@@ -110,6 +114,7 @@ public class VerificationActivity extends AppCompatActivity {
         tvResendCode.setOnClickListener(view -> {
 
             if (new ConnectivityManager().checkConnectivity(VerificationActivity.this)) {
+                LoadingDialog.showDialog(this);
                 resendVerification(phone, resendingToken);
             } else {
                 new AlertDialog.Builder(VerificationActivity.this).setTitle("No Internet").setMessage("Please check your internet connection").setPositiveButton("Open Settings", new DialogInterface.OnClickListener() {
@@ -145,7 +150,7 @@ public class VerificationActivity extends AppCompatActivity {
     }
 
     public void resendVerification(String phone, PhoneAuthProvider.ForceResendingToken token) {
-        PhoneAuthOptions options = PhoneAuthOptions.newBuilder().setPhoneNumber(phone).setTimeout(60L, TimeUnit.SECONDS).setActivity(this).setCallbacks(mCallbacks).setForceResendingToken(token).build();
+        PhoneAuthOptions options = PhoneAuthOptions.newBuilder().setPhoneNumber("+91" + phone).setTimeout(60L, TimeUnit.SECONDS).setActivity(this).setCallbacks(mCallbacks).setForceResendingToken(token).build();
         PhoneAuthProvider.verifyPhoneNumber(options);
     }
 
@@ -201,6 +206,12 @@ public class VerificationActivity extends AppCompatActivity {
         if (!isLogged) {
             mAuth.signOut();
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        LoadingDialog.dismissDialog();
     }
 
     @Override

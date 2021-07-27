@@ -22,7 +22,6 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.google.gson.Gson;
 import com.opd.therament.R;
 import com.opd.therament.activities.HospitalActivity;
@@ -34,6 +33,7 @@ import com.opd.therament.datamodels.HospitalDataModel;
 import com.opd.therament.datamodels.TimeSlotDataModel;
 import com.opd.therament.utilities.LoadingDialog;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,8 +48,8 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
     ArrayList<AppointmentDataModel> appointmentList;
     CollectionReference appColl;
     AppointmentAdapter appointmentAdapter;
-    SimpleDateFormat dateFormat, timeFormat;
-    String date, time;
+    SimpleDateFormat dateFormat;
+    String date;
     TextView tvPreviousAppointments, tvNoAppointments;
     LottieAnimationView emptyAnimation;
 
@@ -76,21 +76,25 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
             startActivity(new Intent(getActivity(), PreviousAppointmentActivity.class));
         });
 
-        dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        timeFormat = new SimpleDateFormat("hh:mm aa", Locale.getDefault());
-        time = timeFormat.format(new Date());
+        dateFormat = new SimpleDateFormat("dd/MM/yyyy hh:mm aa", Locale.getDefault());
         date = dateFormat.format(new Date());
+
         return root;
     }
 
-    private void automaticDone() {
-        String date = "30/07/2021";
-        String time = "11:00 am";
+    private void automaticDone() throws ParseException {
+
+        Date currentDate = dateFormat.parse(date);
 
         for (int i = 0; i < appointmentList.size(); i++) {
+
             String selectedTime = appointmentList.get(i).getSelectedTime().substring(11);
-            if (date.equals(appointmentList.get(i).getSelectedDate()) && time.equals(selectedTime)) {
-                LoadingDialog.showDialog(getContext());
+
+            Date appDate = dateFormat.parse(appointmentList.get(i).getSelectedDate() + " " + selectedTime);
+
+            assert currentDate != null;
+
+            if (currentDate.compareTo(appDate) >= 0) {
                 appointmentList.get(i).setBooked(true);
                 updateStatus(appointmentList.get(i));
             }
@@ -102,7 +106,7 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
 
         appColl = firestore.collection(getString(R.string.collection_users)).document(mAuth.getCurrentUser().getUid()).collection(getString(R.string.collection_appointments));
 
-        appColl.orderBy("date", Query.Direction.DESCENDING).get().addOnCompleteListener(task -> {
+        appColl.get().addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
 
@@ -118,9 +122,17 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
                     emptyAnimation.setVisibility(View.INVISIBLE);
                     tvNoAppointments.setVisibility(View.INVISIBLE);
                     rvAppointments.setVisibility(View.VISIBLE);
-                    appointmentAdapter = new AppointmentAdapter(getContext(), appointmentList, this, this, "Other");
-                    rvAppointments.setAdapter(appointmentAdapter);
-                    automaticDone();
+                    try {
+                        sortList(appointmentList);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        automaticDone();
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
                 }
                 LoadingDialog.dismissDialog();
             } else {
@@ -128,6 +140,29 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
                 Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void sortList(ArrayList<AppointmentDataModel> appointmentList) throws ParseException {
+        SimpleDateFormat formatDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
+        Date temp;
+
+        for (int i = 0; i < appointmentList.size(); i++) {
+
+            for (int j = i + 1; j < appointmentList.size(); j++) {
+                Date first = formatDate.parse(appointmentList.get(i).getSelectedDate());
+                Date second = formatDate.parse(appointmentList.get(j).getSelectedDate());
+
+                assert first != null;
+                if (first.compareTo(second) > 0) {
+                    temp = first;
+                    appointmentList.get(i).setSelectedDate(appointmentList.get(j).getSelectedDate());
+                    appointmentList.get(j).setSelectedDate(formatDate.format(temp));
+                }
+            }
+        }
+        appointmentAdapter = new AppointmentAdapter(getContext(), appointmentList, this, this, "Other");
+        rvAppointments.setAdapter(appointmentAdapter);
     }
 
     @Override
@@ -189,6 +224,7 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
                                 timeRef.update("status", String.valueOf(decrement)).addOnCompleteListener(task2 -> {
                                     if (task2.isSuccessful()) {
                                         if (!dataModel.getBooked()) {
+                                            LoadingDialog.dismissDialog();
                                             Toast.makeText(getContext(), "Appointment Cancelled Successfully", Toast.LENGTH_SHORT).show();
                                         }
                                         updateHistory(dataModel);
@@ -217,11 +253,11 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
 
                 if (task.isSuccessful()) {
                     appointmentList.remove(dataModel);
+                    getAppointments();
                 }
             });
         }
         appointmentAdapter.updateList(appointmentList);
-        getAppointments();
         LoadingDialog.dismissDialog();
     }
 
