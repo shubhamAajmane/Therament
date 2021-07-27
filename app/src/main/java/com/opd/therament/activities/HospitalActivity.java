@@ -25,7 +25,6 @@ import com.opd.therament.adapters.ReviewAdapter;
 import com.opd.therament.datamodels.DoctorDataModel;
 import com.opd.therament.datamodels.HospitalDataModel;
 import com.opd.therament.datamodels.ReviewDataModel;
-import com.opd.therament.utilities.LoadingDialog;
 
 import java.util.ArrayList;
 
@@ -84,8 +83,6 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
         tvTime.setText(String.format("%s %s", getString(R.string.time_label), hospitalDatamodel.getTime()));
         Glide.with(this).load(hospitalDatamodel.getImageUrl()).into(ivLogo);
         ratingBar.setRating(Float.parseFloat(hospitalDatamodel.getRating()));
-
-        LoadingDialog.showDialog(this);
         getDoctors();
         getReviews();
     }
@@ -101,7 +98,6 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
                     doctorsList.add(doctorDatamodel);
                 }
                 rvDoctors.setAdapter(new DoctorAdapter(HospitalActivity.this, doctorsList));
-                LoadingDialog.dismissDialog();
             } else {
                 Toast.makeText(HospitalActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
@@ -120,7 +116,6 @@ public class HospitalActivity extends AppCompatActivity implements View.OnClickL
                     reviewsList.add(reviewDataModel);
                 }
                 rvReviews.setAdapter(new ReviewAdapter(this, reviewsList, false));
-                LoadingDialog.dismissDialog();
             } else {
                 Toast.makeText(HospitalActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }

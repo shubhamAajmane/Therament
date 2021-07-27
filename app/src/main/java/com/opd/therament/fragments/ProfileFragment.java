@@ -40,7 +40,7 @@ public class ProfileFragment extends Fragment {
     EditText etName, etEmail, etPhone;
     CardView imageLayout;
     ImageView ivProfile;
-    
+
     private void getUserData() {
         DocumentReference userRef = firestore.collection(getString(R.string.collection_users)).document(Objects.requireNonNull(mAuth.getCurrentUser()).getUid());
 
@@ -127,18 +127,41 @@ public class ProfileFragment extends Fragment {
                 etPhone.setVisibility(View.VISIBLE);
                 etEmail.setVisibility(View.VISIBLE);
             } else {
-                tvEdit.setText("Edit");
 
-                tvName.setVisibility(View.VISIBLE);
-                tvPhone.setVisibility(View.VISIBLE);
-                tvEmail.setVisibility(View.VISIBLE);
+                if (etName.getText().toString().isEmpty() || etEmail.getText().toString().isEmpty() || etPhone.getText().toString().isEmpty()) {
+                    Toast.makeText(getContext(), "Please enter all fields", Toast.LENGTH_SHORT).show();
+                } else {
+                    tvEdit.setText("Edit");
+                    UserDataModel newUser = new UserDataModel();
+                    newUser.setName(etName.getText().toString());
+                    newUser.setPhone(etPhone.getText().toString());
+                    newUser.setEmail(etEmail.getText().toString());
+                    setData(newUser);
+                    tvName.setVisibility(View.VISIBLE);
+                    tvPhone.setVisibility(View.VISIBLE);
+                    tvEmail.setVisibility(View.VISIBLE);
 
-                etName.setVisibility(View.INVISIBLE);
-                etPhone.setVisibility(View.INVISIBLE);
-                etEmail.setVisibility(View.INVISIBLE);
+                    etName.setVisibility(View.INVISIBLE);
+                    etPhone.setVisibility(View.INVISIBLE);
+                    etEmail.setVisibility(View.INVISIBLE);
+                    updateProfile(newUser);
+                }
             }
         });
 
         return root;
+    }
+
+    private void updateProfile(UserDataModel newUser) {
+
+        DocumentReference userDoc = firestore.collection(getString(R.string.collection_users)).document(mAuth.getCurrentUser().getUid());
+        userDoc.update("name", newUser.getName(), "phone", newUser.getPhone(), "email", newUser.getEmail()).addOnCompleteListener(task -> {
+
+            if (task.isSuccessful()) {
+                Toast.makeText(getContext(), "Updated Profile Successfully", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 
 public class AppointmentActivity extends AppCompatActivity {
 
@@ -53,12 +54,6 @@ public class AppointmentActivity extends AppCompatActivity {
     SimpleDateFormat dateFormat, timeFormat;
     TimeSlotDataModel t = new TimeSlotDataModel();
     HospitalDataModel hospitalDetails;
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        LoadingDialog.showDialog(this);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +91,7 @@ public class AppointmentActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
+        LoadingDialog.showDialog(this);
         getDates();
 
         myCalendar = Calendar.getInstance();
@@ -155,7 +151,7 @@ public class AppointmentActivity extends AppCompatActivity {
 
             if (task.isSuccessful()) {
 
-                for (DocumentSnapshot timeDoc : task.getResult()) {
+                for (DocumentSnapshot timeDoc : Objects.requireNonNull(task.getResult())) {
                     TimeSlotDataModel timeSlotDataModel = timeDoc.toObject(TimeSlotDataModel.class);
                     timeList.add(timeSlotDataModel);
                 }
@@ -210,7 +206,7 @@ public class AppointmentActivity extends AppCompatActivity {
 
             if (i == 0) {
                 myCalendar.set(Calendar.DAY_OF_YEAR, myCalendar.get(Calendar.DAY_OF_YEAR));
-            } else if (i > 0) {
+            } else {
                 myCalendar.set(Calendar.DAY_OF_YEAR, myCalendar.get(Calendar.DAY_OF_YEAR) + 1);
             }
             Date today = myCalendar.getTime();
@@ -225,7 +221,6 @@ public class AppointmentActivity extends AppCompatActivity {
                 for (int i = 0; i < dateList.size(); i++) {
                     DocumentReference dateDoc = firestore.collection(getString(R.string.collection_hospitals)).document(hospitalDetails.getId())
                             .collection(getString(R.string.collection_timeslots)).document(dateList.get(i).getId());
-
                     dateDoc.update("date", updatedDateList.get(i));
                     dateList.get(i).setDate(updatedDateList.get(i));
                 }
@@ -255,7 +250,7 @@ public class AppointmentActivity extends AppCompatActivity {
 
                 boolean isScheduled = false;
 
-                for (DocumentSnapshot doc : task.getResult()) {
+                for (DocumentSnapshot doc : Objects.requireNonNull(task.getResult())) {
 
                     if (doc.exists()) {
                         isScheduled = true;
@@ -284,8 +279,10 @@ public class AppointmentActivity extends AppCompatActivity {
 
                 DocumentSnapshot doc = task.getResult();
 
+                assert doc != null;
                 if (doc.exists()) {
                     UserDataModel userDataModel = doc.toObject(UserDataModel.class);
+                    assert userDataModel != null;
                     sendEmail(appointmentDoc, userDataModel);
                 } else {
                     LoadingDialog.dismissDialog();
