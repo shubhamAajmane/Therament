@@ -131,6 +131,7 @@ public class ProfileFragment extends Fragment {
                 if (etName.getText().toString().isEmpty() || etEmail.getText().toString().isEmpty() || etPhone.getText().toString().isEmpty()) {
                     Toast.makeText(getContext(), "Please enter all fields", Toast.LENGTH_SHORT).show();
                 } else {
+                    LoadingDialog.showDialog(getContext());
                     tvEdit.setText("Edit");
                     UserDataModel newUser = new UserDataModel();
                     newUser.setName(etName.getText().toString());
@@ -158,8 +159,10 @@ public class ProfileFragment extends Fragment {
         userDoc.update("name", newUser.getName(), "phone", newUser.getPhone(), "email", newUser.getEmail()).addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
+                LoadingDialog.dismissDialog();
                 Toast.makeText(getContext(), "Updated Profile Successfully", Toast.LENGTH_SHORT).show();
             } else {
+                LoadingDialog.dismissDialog();
                 Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });

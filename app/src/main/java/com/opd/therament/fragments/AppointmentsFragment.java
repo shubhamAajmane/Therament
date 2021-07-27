@@ -38,6 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 
 public class AppointmentsFragment extends Fragment implements AppointmentAdapter.onCancelListener, AppointmentAdapter.ItemViewClick {
 
@@ -195,7 +196,7 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
             DateDataModel date = null;
 
             if (task.isSuccessful()) {
-                for (DocumentSnapshot doc : task.getResult()) {
+                for (DocumentSnapshot doc : Objects.requireNonNull(task.getResult())) {
 
                     if (doc.exists()) {
                         date = doc.toObject(DateDataModel.class);
