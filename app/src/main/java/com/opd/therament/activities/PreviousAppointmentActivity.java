@@ -17,7 +17,6 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.google.gson.Gson;
 import com.opd.therament.R;
 import com.opd.therament.adapters.AppointmentAdapter;
@@ -25,7 +24,11 @@ import com.opd.therament.datamodels.AppointmentDataModel;
 import com.opd.therament.datamodels.HospitalDataModel;
 import com.opd.therament.utilities.LoadingDialog;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 
 public class PreviousAppointmentActivity extends AppCompatActivity implements AppointmentAdapter.ItemViewClick {
@@ -67,7 +70,7 @@ public class PreviousAppointmentActivity extends AppCompatActivity implements Ap
 
         CollectionReference appColl = firestore.collection(getString(R.string.collection_users)).document(Objects.requireNonNull(mAuth.getCurrentUser()).getUid()).collection(getString(R.string.collection_history));
 
-        appColl.orderBy("date", Query.Direction.DESCENDING).get().addOnCompleteListener(task -> {
+        appColl.get().addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
 
@@ -83,8 +86,11 @@ public class PreviousAppointmentActivity extends AppCompatActivity implements Ap
                     emptyAnimation.setVisibility(View.INVISIBLE);
                     tvNoAppointments.setVisibility(View.INVISIBLE);
                     rvAppointments.setVisibility(View.VISIBLE);
-                    appointmentAdapter = new AppointmentAdapter(this, appointmentList, this, "History");
-                    rvAppointments.setAdapter(appointmentAdapter);
+                    try {
+                        sortList(appointmentList);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
                 }
                 LoadingDialog.dismissDialog();
 
@@ -93,6 +99,29 @@ public class PreviousAppointmentActivity extends AppCompatActivity implements Ap
                 Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void sortList(ArrayList<AppointmentDataModel> appointmentList) throws ParseException {
+        SimpleDateFormat formatDate = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
+        Date temp;
+
+        for (int i = 0; i < appointmentList.size(); i++) {
+
+            for (int j = i + 1; j < appointmentList.size(); j++) {
+                Date first = formatDate.parse(appointmentList.get(i).getSelectedDate());
+                Date second = formatDate.parse(appointmentList.get(j).getSelectedDate());
+
+                assert first != null;
+                if (first.compareTo(second) < 0) {
+                    temp = first;
+                    appointmentList.get(i).setSelectedDate(appointmentList.get(j).getSelectedDate());
+                    appointmentList.get(j).setSelectedDate(formatDate.format(temp));
+                }
+            }
+        }
+        appointmentAdapter = new AppointmentAdapter(this, appointmentList, this, "History");
+        rvAppointments.setAdapter(appointmentAdapter);
     }
 
     @Override
