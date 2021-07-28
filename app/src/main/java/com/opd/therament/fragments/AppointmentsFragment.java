@@ -54,13 +54,6 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
     TextView tvPreviousAppointments, tvNoAppointments;
     LottieAnimationView emptyAnimation;
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        LoadingDialog.showDialog(getContext());
-        getAppointments();
-    }
-
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -73,6 +66,10 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
         mAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
         tvPreviousAppointments = root.findViewById(R.id.tv_previous_appointments);
+
+        LoadingDialog.showDialog(getActivity());
+        getAppointments();
+
         tvPreviousAppointments.setOnClickListener(view -> {
             startActivity(new Intent(getActivity(), PreviousAppointmentActivity.class));
         });

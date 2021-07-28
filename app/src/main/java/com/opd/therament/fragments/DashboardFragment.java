@@ -49,13 +49,6 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
     TextView tvNoHospitals;
     LottieAnimationView emptyAnimation;
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        LoadingDialog.showDialog(getContext());
-        getHospitals();
-    }
-
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_dashboard, container, false);
@@ -64,6 +57,9 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
         sharedPreferences = requireContext().getSharedPreferences(getString(R.string.preferences), Context.MODE_PRIVATE);
         cityName = sharedPreferences.getString("city", "");
         tvCityName.setText(cityName);
+
+        LoadingDialog.showDialog(getActivity());
+        getHospitals();
 
         tvCityName.setOnClickListener(view -> {
             startActivity(new Intent(getActivity(), CityActivity.class));
@@ -78,6 +74,7 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
 
     private void getHospitals() {
         ArrayList<HospitalDataModel> hospitalsList = new ArrayList<>();
+        sharedPreferences.edit().putInt("clickId", R.id.category_all).apply();
 
         CollectionReference hospitalsColl = firestore.collection(getString(R.string.collection_hospitals));
 

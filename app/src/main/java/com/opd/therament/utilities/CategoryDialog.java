@@ -20,7 +20,7 @@ public class CategoryDialog extends Dialog implements View.OnClickListener {
 
     Button btnCancel, btnDone;
     getCategories getCategories;
-    String category;
+    String category = "All";
     Activity activity;
     RadioButton c1, c2, c3, c4, c5, c6, cAll;
     RadioGroup radioGroup;

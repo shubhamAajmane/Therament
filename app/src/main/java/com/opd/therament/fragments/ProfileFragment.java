@@ -29,7 +29,6 @@ import com.opd.therament.utilities.LoadingDialog;
 
 import java.util.Objects;
 
-
 public class ProfileFragment extends Fragment {
 
     Button btnLogout;
@@ -40,47 +39,6 @@ public class ProfileFragment extends Fragment {
     EditText etName, etEmail, etPhone;
     CardView imageLayout;
     ImageView ivProfile;
-
-    private void getUserData() {
-        DocumentReference userRef = firestore.collection(getString(R.string.collection_users)).document(Objects.requireNonNull(mAuth.getCurrentUser()).getUid());
-
-        userRef.get().addOnCompleteListener(task -> {
-
-            if (task.isSuccessful()) {
-
-                DocumentSnapshot userDoc = task.getResult();
-
-                if (userDoc.exists()) {
-                    UserDataModel userDataModel = userDoc.toObject(UserDataModel.class);
-                    setData(userDataModel);
-                    LoadingDialog.dismissDialog();
-                } else {
-                    LoadingDialog.dismissDialog();
-                    Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                LoadingDialog.dismissDialog();
-                Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void setData(UserDataModel userDataModel) {
-        etName.setVisibility(View.INVISIBLE);
-        etEmail.setVisibility(View.INVISIBLE);
-        etPhone.setVisibility(View.INVISIBLE);
-
-        tvName.setVisibility(View.VISIBLE);
-        tvPhone.setVisibility(View.VISIBLE);
-        tvEmail.setVisibility(View.VISIBLE);
-
-        tvName.setText(userDataModel.getName());
-        etName.setText(userDataModel.getName());
-        tvPhone.setText(userDataModel.getPhone());
-        etPhone.setText(userDataModel.getPhone());
-        tvEmail.setText(userDataModel.getEmail());
-        etEmail.setText(userDataModel.getEmail());
-    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -99,7 +57,7 @@ public class ProfileFragment extends Fragment {
         etEmail = root.findViewById(R.id.et_email);
         etPhone = root.findViewById(R.id.et_phone);
 
-        LoadingDialog.showDialog(getContext());
+        LoadingDialog.showDialog(getActivity());
         getUserData();
 
         btnLogout.setOnClickListener(view -> {
@@ -151,6 +109,47 @@ public class ProfileFragment extends Fragment {
         });
 
         return root;
+    }
+
+    private void getUserData() {
+        DocumentReference userRef = firestore.collection(getString(R.string.collection_users)).document(Objects.requireNonNull(mAuth.getCurrentUser()).getUid());
+
+        userRef.get().addOnCompleteListener(task -> {
+
+            if (task.isSuccessful()) {
+
+                DocumentSnapshot userDoc = task.getResult();
+
+                if (userDoc.exists()) {
+                    UserDataModel userDataModel = userDoc.toObject(UserDataModel.class);
+                    setData(userDataModel);
+                    LoadingDialog.dismissDialog();
+                } else {
+                    LoadingDialog.dismissDialog();
+                    Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                LoadingDialog.dismissDialog();
+                Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void setData(UserDataModel userDataModel) {
+        etName.setVisibility(View.INVISIBLE);
+        etEmail.setVisibility(View.INVISIBLE);
+        etPhone.setVisibility(View.INVISIBLE);
+
+        tvName.setVisibility(View.VISIBLE);
+        tvPhone.setVisibility(View.VISIBLE);
+        tvEmail.setVisibility(View.VISIBLE);
+
+        tvName.setText(userDataModel.getName());
+        etName.setText(userDataModel.getName());
+        tvPhone.setText(userDataModel.getPhone());
+        etPhone.setText(userDataModel.getPhone());
+        tvEmail.setText(userDataModel.getEmail());
+        etEmail.setText(userDataModel.getEmail());
     }
 
     private void updateProfile(UserDataModel newUser) {
