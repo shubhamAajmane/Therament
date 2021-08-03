@@ -129,7 +129,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
                         android:fontFamily="@font/bold"
-                        android:text="Our Staffs"
+                        android:text="Our Doctors"
                         android:textColor="@android:color/black"
                         android:textSize="20sp"
                         app:layout_constraintStart_toStartOf="@id/tv_description"

@@ -84,7 +84,7 @@ public class CategoryDialog extends Dialog implements View.OnClickListener {
             break;
 
             case R.id.category_orthopedic: {
-                category = "Orthopedic";
+                category = "Orthopaedics";
             }
             break;
 

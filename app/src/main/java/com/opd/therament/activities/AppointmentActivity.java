@@ -314,7 +314,7 @@ public class AppointmentActivity extends AppCompatActivity {
                 MailSender sender1 = new MailSender(getString(R.string.app_email), getString(R.string.app_email_pass));
                 sender1.sendMail(msgBody,
                         getString(R.string.app_email),
-                        "aajmane09@gmail.com");
+                        hospitalDetails.getEmail());
                 mailSent = true;
             } catch (Exception e) {
                 mailSent = false;
