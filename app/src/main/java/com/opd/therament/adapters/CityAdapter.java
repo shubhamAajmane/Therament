@@ -59,4 +59,9 @@ public class CityAdapter extends RecyclerView.Adapter<CityAdapter.CityViewHolder
     public interface onCityClickListener {
         void onCityClick(View view, Integer position);
     }
+
+    public void updateList(ArrayList<CityDataModel> cityList) {
+        this.cities = cityList;
+        notifyDataSetChanged();
+    }
 }

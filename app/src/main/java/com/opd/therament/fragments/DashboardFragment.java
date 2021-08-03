@@ -123,7 +123,11 @@ public class DashboardFragment extends Fragment implements HospitalAdapter.onHos
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 if (charSequence != null) {
-                    searchHospitals(etSearch.getText().toString());
+                    if (etSearch.getText().toString().isEmpty()) {
+                        getHospitals();
+                    } else {
+                        searchHospitals(etSearch.getText().toString());
+                    }
                 }
             }
 

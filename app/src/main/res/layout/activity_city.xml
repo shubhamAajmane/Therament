@@ -37,6 +37,8 @@
                 android:background="@drawable/edit_text_bg"
                 android:fontFamily="@font/regular"
                 android:hint="Search City"
+                android:imeOptions="actionDone"
+                android:inputType="textCapWords"
                 android:padding="10dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
