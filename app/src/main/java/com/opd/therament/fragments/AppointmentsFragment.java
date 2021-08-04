@@ -66,10 +66,8 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
         mAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
         tvPreviousAppointments = root.findViewById(R.id.tv_previous_appointments);
-
         LoadingDialog.showDialog(getActivity());
         getAppointments();
-
         tvPreviousAppointments.setOnClickListener(view -> {
             startActivity(new Intent(getActivity(), PreviousAppointmentActivity.class));
         });
@@ -245,18 +243,17 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
     private void updateHistory(AppointmentDataModel dataModel) {
 
         if (!dataModel.getBooked()) {
-
             DocumentReference historyDoc = firestore.collection(getString(R.string.collection_users)).document(mAuth.getCurrentUser().getUid()).collection(getString(R.string.collection_history)).document(dataModel.getId());
             historyDoc.set(dataModel).addOnCompleteListener(task -> {
 
                 if (task.isSuccessful()) {
                     appointmentList.remove(dataModel);
-                    getAppointments();
+                } else {
+                    Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
                 }
             });
         }
-        appointmentAdapter.updateList(appointmentList);
-        LoadingDialog.dismissDialog();
+        getAppointments();
     }
 
     @Override

@@ -14,9 +14,12 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.opd.therament.R;
+import com.opd.therament.datamodels.AppointmentDataModel;
 import com.opd.therament.datamodels.ReviewDataModel;
 import com.opd.therament.datamodels.UserDataModel;
 import com.opd.therament.utilities.LoadingDialog;
+
+import java.util.Objects;
 
 public class WriteReviewActivity extends AppCompatActivity {
 
@@ -107,7 +110,19 @@ public class WriteReviewActivity extends AppCompatActivity {
 
                 if (task.isSuccessful()) {
                     DocumentReference appointment = FirebaseFirestore.getInstance().collection(getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getCurrentUser().getUid()).collection(getString(R.string.collection_appointments)).document(appointmentId);
-                    appointment.delete();
+                    appointment.get().addOnCompleteListener(task1 -> {
+
+                        if (task1.isSuccessful()) {
+                            AppointmentDataModel appointmentDataModel = Objects.requireNonNull(task1.getResult()).toObject(AppointmentDataModel.class);
+                            DocumentReference historyDoc = firestore.collection(getString(R.string.collection_users)).document(mAuth.getCurrentUser().getUid()).collection(getString(R.string.collection_history)).document(appointmentId);
+                            assert appointmentDataModel != null;
+                            historyDoc.set(appointmentDataModel);
+
+                        } else {
+                            LoadingDialog.dismissDialog();
+                            Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 } else {
                     LoadingDialog.dismissDialog();
                     Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show();

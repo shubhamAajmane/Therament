@@ -134,7 +134,7 @@ public class AppointmentAdapter extends RecyclerView.Adapter<AppointmentAdapter.
 
                         if (review.exists()) {
                             dataModels.remove(dataModel);
-                            notifyDataSetChanged();
+                            notifyItemRemoved(position);
                             DocumentReference appointment = FirebaseFirestore.getInstance().collection(context.getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getCurrentUser().getUid()).collection(context.getString(R.string.collection_appointments)).document(dataModel.getId());
                             appointment.delete();
                             DocumentReference historyDoc = FirebaseFirestore.getInstance().collection(context.getString(R.string.collection_users)).document(FirebaseAuth.getInstance().getCurrentUser().getUid()).collection(context.getString(R.string.collection_history)).document(dataModel.getId());
