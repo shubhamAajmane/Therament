@@ -120,13 +120,14 @@ public class ProfileFragment extends Fragment {
 
                 DocumentSnapshot userDoc = task.getResult();
 
+                assert userDoc != null;
                 if (userDoc.exists()) {
                     UserDataModel userDataModel = userDoc.toObject(UserDataModel.class);
                     setData(userDataModel);
                     LoadingDialog.dismissDialog();
                 } else {
                     LoadingDialog.dismissDialog();
-                    Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
                 }
             } else {
                 LoadingDialog.dismissDialog();

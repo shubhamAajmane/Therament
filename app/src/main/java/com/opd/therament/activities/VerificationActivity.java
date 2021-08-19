@@ -43,7 +43,6 @@ public class VerificationActivity extends AppCompatActivity {
     boolean isLogin;
     Button btnVerify;
     TextView tvResendCode;
-    boolean isLogged = false;
     ImageView ivBack;
     SharedPreferences sharedPreferences;
 
@@ -164,7 +163,6 @@ public class VerificationActivity extends AppCompatActivity {
         mAuth.signInWithCredential(phoneAuthCredential).addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
-                isLogged = true;
                 if (isLogin) {
                     String cityName = sharedPreferences.getString("city", "");
                     if (cityName.isEmpty()) {
@@ -200,26 +198,8 @@ public class VerificationActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-
-        if (!isLogged) {
-            mAuth.signOut();
-        }
-    }
-
-    @Override
     public void onBackPressed() {
         super.onBackPressed();
         LoadingDialog.dismissDialog();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        if (!isLogged) {
-            mAuth.signOut();
-        }
     }
 }

@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +32,9 @@ import com.opd.therament.datamodels.AppointmentDataModel;
 import com.opd.therament.datamodels.DateDataModel;
 import com.opd.therament.datamodels.HospitalDataModel;
 import com.opd.therament.datamodels.TimeSlotDataModel;
+import com.opd.therament.datamodels.UserDataModel;
 import com.opd.therament.utilities.LoadingDialog;
+import com.opd.therament.utilities.MailSender;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -168,13 +171,25 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 DocumentReference appDoc = appColl.document(dataModel.getId());
+                DocumentReference userDoc = firestore.collection(getString(R.string.collection_users)).document(mAuth.getCurrentUser().getUid());
 
-                appDoc.delete().addOnCompleteListener(task -> {
+                userDoc.get().addOnCompleteListener(task1 -> {
 
-                    if (task.isSuccessful()) {
-                        LoadingDialog.showDialog(getContext());
-                        dataModel.setBooked(false);
-                        updateStatus(dataModel);
+                    if (task1.isSuccessful()) {
+                        UserDataModel userDataModel = Objects.requireNonNull(task1.getResult()).toObject(UserDataModel.class);
+                        assert userDataModel != null;
+                        sendEmail(dataModel, userDataModel);
+
+                        appDoc.delete().addOnCompleteListener(task -> {
+
+                            if (task.isSuccessful()) {
+                                LoadingDialog.showDialog(getContext());
+                                dataModel.setBooked(false);
+                                updateStatus(dataModel);
+                            }
+                        });
+                    } else {
+                        Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -219,10 +234,6 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
                                 DocumentReference timeRef = firestore.collection(getString(R.string.collection_hospitals)).document(dataModel.getHospitalId()).collection(getString(R.string.collection_timeslots)).document(finalDate.getId()).collection(getString(R.string.collection_times)).document(time.getId());
                                 timeRef.update("status", String.valueOf(decrement)).addOnCompleteListener(task2 -> {
                                     if (task2.isSuccessful()) {
-                                        if (!dataModel.getBooked()) {
-                                            LoadingDialog.dismissDialog();
-                                            Toast.makeText(getContext(), "Appointment Cancelled Successfully", Toast.LENGTH_SHORT).show();
-                                        }
                                         updateHistory(dataModel);
                                     }
                                 });
@@ -254,6 +265,44 @@ public class AppointmentsFragment extends Fragment implements AppointmentAdapter
             });
         }
         getAppointments();
+    }
+
+    private void sendEmail(AppointmentDataModel appDatamodel, UserDataModel userDataModel) {
+        LoadingDialog.showDialog(getContext());
+        String userName = userDataModel.getName();
+        String contact;
+
+        if (userDataModel.getPhone() != null) {
+            contact = userDataModel.getPhone();
+        } else {
+            contact = userDataModel.getEmail();
+        }
+        DocumentReference hosRef = firestore.collection(getString(R.string.collection_hospitals)).document(appDatamodel.getHospitalId());
+        hosRef.get().addOnCompleteListener(task1 -> {
+
+            if (task1.isSuccessful()) {
+                HospitalDataModel hospitalDataModel = Objects.requireNonNull(task1.getResult()).toObject(HospitalDataModel.class);
+                String msgBody = "Title: Cancel Appointment " + "\nUser Name: " + userName + "\nContact Details: " + contact + "\nSelected Date: " + appDatamodel.getSelectedDate() + "\nSelected Time Slot: " + appDatamodel.getSelectedTime() + "\nScheduled On: " + appDatamodel.getDate() + appDatamodel.getTime();
+
+                Thread sender = new Thread(() -> {
+                    try {
+                        MailSender sender1 = new MailSender(getString(R.string.app_email), getString(R.string.app_email_pass));
+                        sender1.sendMail(msgBody,
+                                getString(R.string.app_email),
+                                hospitalDataModel.getEmail());
+                    } catch (Exception e) {
+                        Log.e("mylog", "Error: " + e.getMessage());
+                    }
+                });
+                sender.start();
+                LoadingDialog.dismissDialog();
+                Toast.makeText(getContext(), "Appointment Cancelled Successfully", Toast.LENGTH_SHORT).show();
+
+            } else {
+                LoadingDialog.dismissDialog();
+                Toast.makeText(getContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
